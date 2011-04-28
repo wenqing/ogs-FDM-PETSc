@@ -14,7 +14,7 @@
    WW 04.2011
    
 */
-namespace Math_Group {class Linear_EQS;}
+namespace Math_Group {class Linear_EQS; class SparseTable;}
 
 namespace _FDM
 {
@@ -25,9 +25,9 @@ namespace _FDM
    class Numerics;
 
    using Math_Group::Linear_EQS;
+   using Math_Group::SparseTable;
 
 //--------------- class  FiniteDifference ---------------------
-   enum Grid_Point_Type {out, intern, nm_11, nm_12, nm_13, nm_14, nm_21, nm_22, nm_23, nm_24, dirichlet};
    class FiniteDifference 
    {
       public:
@@ -46,6 +46,7 @@ namespace _FDM
         double *u1;
 
         /// EQS
+        SparseTable *sp; 
         Linear_EQS *eqs;
 
 
@@ -88,9 +89,19 @@ namespace _FDM
   
         /// Save equation indicies of grid points 
         vector<long> pnt_eqs_index;
+
+        /// Cell mark. for output
+        vector<bool> cell_status;
         void CaterogorizeGridPoint();
 
+        /// Set Dirichlet boundary condition
+        inline bool CheckDirichletBC(Point *pnt);
+        inline void CheckNuemannBC(Point *pnt);
+ 
+
+
         friend class BoundayCondition; 
+        friend class Math_Group::SparseTable; 
 
    };
  

@@ -12,8 +12,12 @@
 #include<iostream>
 #include<fstream>
 
-class FiniteDifference;
+/// PDE related class
+namespace _FDM{ class FiniteDifference;}
+
 namespace Math_Group{
+
+  using _FDM::FiniteDifference;
   using namespace std;
 //
 
@@ -112,7 +116,7 @@ enum StorageType { CRS, JDS};
 class SparseTable
 {
     public:
-      SparseTable(FiniteDifference *fdm, bool quadratic, bool symm=false, StorageType stype = JDS);
+      SparseTable(FiniteDifference *fdm);
       ~SparseTable();   
       void Write(ostream &os=cout);    
     private:
@@ -128,9 +132,6 @@ class SparseTable
       long rows;
 
       StorageType storage_type;  
-      // Quick vector sort
-      void Quicksort(long top, long bottom);
-      long PartitionArray(long top, long bottom);
       // 
       friend class CSparseMatrix;
 };

@@ -14,9 +14,16 @@
 #include <cmath>
 //
 #include "matrix_class.h"
+
+///PDE related classes:
 #include "fdm.h"
+#include "geo.h"
+
 
 namespace Math_Group{
+
+////PDE related class:
+//using _FDM::Point;
 
 // Constructors
 Matrix::Matrix(const int rows, const int cols)
@@ -320,74 +327,6 @@ void Matrix::Read_BIN(fstream& is)
 }
 
 
-
-
-/*\!
-********************************************************************
- Quick Sort Functions for Descending Order
- (Function 1/2)
- 02/2008 WW
-********************************************************************
-*/
-void SparseTable::Quicksort(long top, long bottom)
-{
-  // top = subscript of beginning of vector being considered
-  // bottom = subscript of end of vector being considered
-  // this process uses recursion - the process of calling itself
-  long middle = 0;
-  if (top < bottom)
-  {
-     middle = PartitionArray(top, bottom);
-     Quicksort(top, middle);   // sort top partition
-     Quicksort(middle+1, bottom);    // sort bottom partition
-  }
-  return;
-}
-/*\!
-********************************************************************
- Quick Sort Function 2 
-//Function to determine the partitions
-// partitions the array and returns the middle index (subscript)
- (Function /22)
- 02/2008 WW
-********************************************************************
-*/
-long SparseTable::PartitionArray(long top, long bottom)
-{
-  // 'diag_entry' used as a temporary array 
-  // to store the number of nodes connected to this node
-  long n2nodes0 = diag_entry[top];   // Nodes to this row
-  //  long n2old0 = row_index_mapping_n2o[top];   
-
-  long i = top - 1;
-  long j = bottom + 1;
-  long temp;
-  do
-  {
-     do     
-     {
-        j--;
-     }  while (n2nodes0 >diag_entry[j]);
-     // 
-     do  
-     {
-        i++;
-     } while (n2nodes0 <diag_entry[i]);
-     //
-     if (i < j)
-     { 
-        temp = diag_entry[i];    // switch elements at positions i and j
-        diag_entry[i] = diag_entry[j];
-        diag_entry[j] = temp;
-        //
-        temp = row_index_mapping_n2o[i];    // switch elements at positions i and j
-        row_index_mapping_n2o[i] = row_index_mapping_n2o[j];
-        row_index_mapping_n2o[j] = temp;        
-     }
-  }while (i < j);    
-  return j;           // returns middle index
-}
-
 /*\!
 ********************************************************************
    Create sparse matrix table
@@ -397,185 +336,54 @@ long SparseTable::PartitionArray(long top, long bottom)
    03/2010 WW: CRS storage
 ********************************************************************
 */
-SparseTable::SparseTable(FiniteDifference *fdm, bool quadratic, bool symm, StorageType stype)
-             :symmetry(symm), storage_type(stype)
+SparseTable::SparseTable(FiniteDifference *fdm)
 {
-  /*
+  
    long i=0, j=0, ii=0, jj=0;
    long lbuff0=0, lbuff1=0; 
    long **larraybuffer;
    larraybuffer = NULL;
-
-   
+   storage_type = CRS;
+   symmetry = false;  
+ 
    //
-   rows = a_mesh->GetNodesNumber(quadratic);  // In sparse table, = number of nodes
+   rows = (long)fdm->grid_point_in_use.size();
+
    size_entry_column = 0;
    diag_entry = new long[rows]; 
 
-   if(storage_type == JDS)
-   {
-      row_index_mapping_n2o = new long[rows]; 
-      row_index_mapping_o2n = new long[rows];
-   }
-   else if (storage_type == CRS)
-   {
-      row_index_mapping_n2o = NULL; 
-      row_index_mapping_o2n = NULL;
-   }
-
-   if(symmetry)
-   {
-     larraybuffer = new long *[rows];
-     for(i=0; i<rows; i++)
-     {
-        if(storage_type == JDS)
-          row_index_mapping_n2o[i] = i;   
-
-        lbuff1 = (long)a_mesh->nod_vector[i]->connected_nodes.size();
-        larraybuffer[i] = new long[lbuff1+1]; 
-        //
-        larraybuffer[i][0] = lbuff1;
-        for(j=0; j<lbuff1; j++)
-           larraybuffer[i][j+1] = a_mesh->nod_vector[i]->connected_nodes[j];
-        a_mesh->nod_vector[i]->connected_nodes.clear();
-        for(j=0; j<lbuff1; j++)
-        {
-           jj = larraybuffer[i][j+1];
-           if(i<=jj) 
-             a_mesh->nod_vector[i]->connected_nodes.push_back(jj);
-        }
-        
-     }
-   }
-
+   row_index_mapping_n2o = NULL; 
+   row_index_mapping_o2n = NULL;
+ 
    
    /// CRS storage
-   if(storage_type == CRS)
+   /// num_column_entries saves vector ptr of CRS 
+   num_column_entries = new long[rows+1];
+
+   vector<long> A_index;
+   long col_index;
+
+   for(i=0; i<rows; i++)
    {
-      /// num_column_entries saves vector ptr of CRS 
-      num_column_entries = new long[rows+1];
-
-      vector<long> A_index;
-      long col_index;
-
-      for(i=0; i<rows; i++)
-      {
-         num_column_entries[i] = (long)A_index.size();
+      num_column_entries[i] = (long)A_index.size();
  
-         for(j=0; j<(long)a_mesh->nod_vector[i]->connected_nodes.size(); j++)
-         {
-            col_index = a_mesh->nod_vector[i]->connected_nodes[j];
-             
-            /// If linear element is used
-            if((!quadratic)&&(col_index>=rows))
-               continue;
-           
-            if(i == col_index)
-               diag_entry[i] = (long)A_index.size();
-            A_index.push_back(col_index);
-         }
-      }
-      
-      size_entry_column = (long)A_index.size(); 
-      num_column_entries[rows] = size_entry_column;
-
-      entry_column = new long[size_entry_column]; 
-      for(i=0; i<size_entry_column; i++)
-        entry_column[i] = A_index[i];
-
-   }   
-   else if(storage_type == JDS)
-   {
-      //
-      //--- Sort, from that has maximum connect nodes to that has minimum connect nodes
-      //
-      for(i=0; i<rows; i++)
+      for(j=0; j<fdm->grid_point_in_use[i]->GetNumNeighborPoints(); j++)
       {
-         row_index_mapping_n2o[i] = i;   
-         // 'diag_entry' used as a temporary array 
-         // to store the number of nodes connected to this node
-         diag_entry[i] = (long)a_mesh->nod_vector[i]->connected_nodes.size();   
-         if(!quadratic)
-         {
-           lbuff0 = 0;
-           for(j=0; j<diag_entry[i]; j++)
-           {
-              if(a_mesh->nod_vector[i]->connected_nodes[j]<rows)
-                lbuff0++; 
-           }
-           diag_entry[i] = lbuff0;
-         }
-         size_entry_column += diag_entry[i];
-      }
-
-
-      //
-      Quicksort(0, rows-1);
-   
-
-      //
-      // Old index to new one
-      for(i=0; i<rows; i++)
-        row_index_mapping_o2n[row_index_mapping_n2o[i]] = i;      
-      // Maximum number of columns in the sparse table  
-      max_columns = diag_entry[0]; 
-      //--- End of sorting  
-      //
-      //--- Create sparse table
-      //    
-      num_column_entries = new long[max_columns];
-      entry_column = new long[size_entry_column];  
-      // 1. Count entries in each column in sparse table  
-      for (i = 0; i < max_columns; i++)
-        num_column_entries[i] = 0;
-      for (i = 0; i < rows; i++)
-      {
-         // 'diag_entry' still is used as a temporary array
-         // it stores that numbers of nodes connect to this nodes    
-         for (j = 0; j < diag_entry[i]; j++)
-           num_column_entries[j]++;
-      } 
-      // 2. Fill the sparse table, i.e. store all its entries to   
-      //    entry_column  
-      lbuff0 = 0;
-      for (i = 0; i < max_columns; i++)
-      {
-         for (j = 0; j < num_column_entries[i]; j++)
-         {
-            ii = row_index_mapping_n2o[j];  // ii is the real row index of this entry in matrix
-            // jj is the real column index of this entry in matrix
-            jj = a_mesh->nod_vector[ii]->connected_nodes[i];   
-            entry_column[lbuff0] = jj;         
-            // Till to this stage, 'diag_entry' is really used to store indices of the diagonal entries.
-            // Hereby, 'index' refers to the index in entry_column array.
-            if(ii==jj)
-              diag_entry[ii] = lbuff0;
-            //   
-            lbuff0++;
-         } 
+         col_index = fdm->grid_point_in_use[i]->GetNeighborIndex(j);
+                        
+         if(i == col_index)
+            diag_entry[i] = (long)A_index.size();
+         A_index.push_back(col_index);
       }
    }
+      
+   size_entry_column = (long)A_index.size(); 
+   num_column_entries[rows] = size_entry_column;
 
-   // For the case of symmetry matrix
-   if(symmetry)
-   {
-     for(i=0; i<rows; i++)
-     {
-        lbuff0 = larraybuffer[i][0];
-        a_mesh->nod_vector[i]->connected_nodes.resize(lbuff0); 
-        //
-        for(j=0; j<lbuff0; j++)
-           a_mesh->nod_vector[i]->connected_nodes[j] = larraybuffer[i][j+1];
-     }
-     for(i=0; i<rows; i++)
-     {
-        delete [] larraybuffer[i];
-        larraybuffer[i] = 0;
-     }
-     delete []larraybuffer;
-     larraybuffer = 0; 
-   }   
-*/          
+   entry_column = new long[size_entry_column]; 
+   for(i=0; i<size_entry_column; i++)
+      entry_column[i] = A_index[i];
+
 }
 /*\!
 ********************************************************************

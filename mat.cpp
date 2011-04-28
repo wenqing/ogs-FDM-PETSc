@@ -24,7 +24,7 @@ namespace _FDM
      vector<float> keyval(2);
      
      key[0] = "conductivity:";
-     key[1] = "capacity:";
+     key[1] = "storage:";
 
      Read_Block(ins, key, keyval);
       

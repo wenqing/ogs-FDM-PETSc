@@ -4,6 +4,7 @@
    04.2011. WW
 */
 #include <iomanip>
+#include <limits>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -61,6 +62,55 @@ namespace _FDM
 
    }
  
+   //--------------------------------------------------
+   /*!
+   \fn  Point* BoundayCondition::GetClosedPoint(Point *pnt)
+      
+      For a given point pnt, find a closed point of geometry
+      entity
+      
+      04.2011. WW
+   */
+   Point* BoundayCondition::GetClosedPoint(const Point *pnt, const double tol)
+   {
+      int k;
+      Point *bc_pnt;
+ 
+      real dist; 
+      real min_dist = DBL_MAX;
+      bc_pnt = NULL;
+
+      if(ply)
+      {
+         for(k=0; k<(int)ply->points.size(); k++)
+         {
+            dist = ply->points[k]->GetDistanceTo(pnt);
+            if(dist<min_dist)
+            {
+               min_dist = dist;
+               bc_pnt = ply->points[k]; 
+            }
+         }
+              
+      }
+      else if(point)
+      {
+         dist = point->GetDistanceTo(pnt);
+         if(dist<min_dist)
+         {
+            min_dist = dist;
+            bc_pnt = point; 
+         }
+
+      }
+
+      if(min_dist>tol)
+        return NULL;
+ 
+      return bc_pnt;
+
+   }
+
    /// Output boundary condition 
    void BoundayCondition::Write(ostream &os)
    {
@@ -75,18 +125,18 @@ namespace _FDM
    /// As the funtion name
    void BoundayCondition::SetGeoEntityType(string type_name)
    {
-       Geo_Point_Type geo_pnt_type;
+       BC_Type pnt_bc_type;
        if(type_name.find("neumann")!=string::npos)
-          geo_pnt_type = neumann;
+          pnt_bc_type = Neumann;  //Defaults
        if(type_name.find("dirichlet")!=string::npos)
-          geo_pnt_type = dirichl;
+          pnt_bc_type = Dirichlet;
       
        if(point)
-          point->point_type = geo_pnt_type;
+          point->bc_type = pnt_bc_type;
        if(ply)
        {
           for(int i=0; i<(int)ply->points.size(); i++)
-            ply->points[i]->point_type = geo_pnt_type; 
+            ply->points[i]->bc_type = pnt_bc_type; 
        }   
          
    }

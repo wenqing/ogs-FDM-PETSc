@@ -13,6 +13,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <limits>
 
 #include "fdm.h"
 #include "mat.h"
@@ -153,6 +154,13 @@ namespace _FDM
       }
   
       CaterogorizeGridPoint();
+
+      /// Generate a linear solver
+      sp = new SparseTable(this);
+      eqs = new Linear_EQS(*sp, 1);      
+
+      //sp->Write();
+
       WriteGrid_VTK();
      
    }
@@ -163,6 +171,8 @@ namespace _FDM
    FiniteDifference::~FiniteDifference()   
    {
       delete mat;
+      delete sp;
+      delete eqs;
    } 
 
 //----------------------------------------------------------
@@ -232,10 +242,18 @@ namespace _FDM
     */
     void FiniteDifference::CaterogorizeGridPoint()
     {
+        int k, l;
         long i, j;
         double x0, x1, y0, y1;
+
+        /// Sort neighbor point index
+        long idx_buff[5], buff1, buff0;
+        NeighborPoint_Type nbp_type; 
+
+
         long size = (ncols+1)*(nrows+1);
 
+        cell_status.resize(ncols*nrows);
         pnt_eqs_index.resize(size);
         for(i=0; i<size; i++)
           pnt_eqs_index[i] = -1;
@@ -247,6 +265,8 @@ namespace _FDM
            y1 = yll0 + cell_size*(i+1);
            for(j=0; j<ncols; j++)
            {
+              
+              cell_status[i*ncols+j] = false;
               x0 = xll0 + cell_size*j;
               x1 = xll0 + cell_size*(j+1);
 
@@ -255,9 +275,11 @@ namespace _FDM
                  &&boundary->PointInDomain(x1,y1)
                  &&boundary->PointInDomain(x0,y1))
               {  
+                 cell_status[i*ncols+j] = true;
                  if(pnt_eqs_index[i*(ncols+1)+j] == -1)
                  {
                     Point *new_grid_pnt = new Point((long)grid_point_in_use.size(), x0, y0);
+                    new_grid_pnt->point_type = intern;
                     pnt_eqs_index[i*(ncols+1)+j] = new_grid_pnt->Index();
                     new_grid_pnt->grid_i = i;
                     new_grid_pnt->grid_j = j; 
@@ -266,6 +288,7 @@ namespace _FDM
                  if(pnt_eqs_index[(i+1)*(ncols+1)+j] == -1)
                  {
                     Point *new_grid_pnt = new Point((long)grid_point_in_use.size(), x0, y1);
+                    new_grid_pnt->point_type = intern;
                     pnt_eqs_index[(i+1)*(ncols+1)+j] = new_grid_pnt->Index();
                     new_grid_pnt->grid_i = i+1;
                     new_grid_pnt->grid_j = j; 
@@ -274,6 +297,7 @@ namespace _FDM
                  if(pnt_eqs_index[(i+1)*(ncols+1)+j+1] == -1)
                  {
                     Point *new_grid_pnt = new Point((long)grid_point_in_use.size(), x1, y1);
+                    new_grid_pnt->point_type = intern;
                     pnt_eqs_index[(i+1)*(ncols+1)+j+1] = new_grid_pnt->Index();
                     new_grid_pnt->grid_i = i+1;
                     new_grid_pnt->grid_j = j+1; 
@@ -282,23 +306,279 @@ namespace _FDM
                  if(pnt_eqs_index[i*(ncols+1)+j+1] == -1)
                  {
                     Point *new_grid_pnt = new Point((long)grid_point_in_use.size(), x1, y0);
+                    new_grid_pnt->point_type = intern;
                     pnt_eqs_index[i*(ncols+1)+j+1] = new_grid_pnt->Index();
                     new_grid_pnt->grid_i = i+1;
                     new_grid_pnt->grid_j = j+1; 
                     grid_point_in_use.push_back(new_grid_pnt);
                  }                 
                   
+                 /// Add this cell as a neighbor 
+                 grid_point_in_use[pnt_eqs_index[i*(ncols+1)+j]]->neighbor_cell_type.push_back(NE);
+                 grid_point_in_use[pnt_eqs_index[i*(ncols+1)+j+1]]->neighbor_cell_type.push_back(NW);
+                 grid_point_in_use[pnt_eqs_index[(i+1)*(ncols+1)+j+1]]->neighbor_cell_type.push_back(SW);
+                 grid_point_in_use[pnt_eqs_index[(i+1)*(ncols+1)+j]]->neighbor_cell_type.push_back(SE);
               }
            }
 
         }   
      
-        //
+         
+        /// Configure the topology of the grid
+        long jw, je, jn, js;
+        for(i=0; i<nrows+1; i++)
+        {
+           for(j=0; j<ncols+1; j++)
+           {
+              /// If the point is not in use              
+              if(pnt_eqs_index[i*(ncols+1)+j] == -1)
+                 continue;
+             
+              Point *pnt = grid_point_in_use[pnt_eqs_index[i*(ncols+1)+j]];
 
+              /// This point is the center
+              pnt->neighbor_points.push_back(pnt->Index());
+              pnt->np_position.push_back(C);
+
+              je = i*(ncols+1)+j+1;
+              jw = i*(ncols+1)+j-1;
+              jn = (i+1)*(ncols+1)+j;
+              js = (i-1)*(ncols+1)+j;
+
+              
+            
+              if(pnt->neighbor_cell_type.size() ==1 )   
+              {
+                 switch(pnt->neighbor_cell_type[0])
+                 {
+                   case NE:
+                     //   |
+                     //   |
+                     //   ----
+                     pnt->point_type = nm_24;  
+                     pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[jn]]->Index());
+                     pnt->np_position.push_back(N);
+                     pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[je]]->Index());
+                     pnt->np_position.push_back(E);
+                     break;
+                   case NW:
+                     //      |
+                     //      |
+                     //   ----
+                     pnt->point_type = nm_23;  
+                     pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[jn]]->Index());
+                     pnt->np_position.push_back(N);
+                     pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[jw]]->Index());
+                     pnt->np_position.push_back(W);
+                     break;
+                   case SW:
+                     //  ---
+                     //     |
+                     //     |
+                     pnt->point_type = nm_22;  
+                     pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[js]]->Index());
+                     pnt->np_position.push_back(S);
+                     pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[jw]]->Index());
+                     pnt->np_position.push_back(W);
+                     break;
+                   case SE:
+                     //   ---
+                     //  |
+                     //  |
+                     pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[je]]->Index());
+                     pnt->np_position.push_back(E);
+                     pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[js]]->Index());
+                     pnt->np_position.push_back(S);
+                     pnt->point_type = nm_21;  
+                     break;
+                 
+                 } 
+              }
+              else if(pnt->neighbor_cell_type.size() ==2 )
+              {
+                 /// 
+                 ///-----.---.---.-----
+                 ///-------------------
+                 ///-------------------                  
+                 if(   (pnt->neighbor_cell_type[0] == NE&&pnt->neighbor_cell_type[1] == NW)
+                     ||(pnt->neighbor_cell_type[1] == NE&&pnt->neighbor_cell_type[0] == NW))
+                 {
+                     pnt->point_type = nm_14;  
+                     
+                     pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[je]]->Index());
+                     pnt->np_position.push_back(E);
+                     pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[jw]]->Index());
+                     pnt->np_position.push_back(W);
+                 }
+                 ///       ||||
+                 ///       .|||
+                 ///       ||||
+                 else if( (pnt->neighbor_cell_type[0] == SW&&pnt->neighbor_cell_type[1] == NW)
+                        ||(pnt->neighbor_cell_type[1] == SW&&pnt->neighbor_cell_type[0] == NW))
+                 {
+                     pnt->point_type = nm_12;  
+
+                     pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[jn]]->Index());
+                     pnt->np_position.push_back(N);
+                     pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[js]]->Index());
+                     pnt->np_position.push_back(S);
+                     
+                 }
+                 ///||||
+                 ///|||.
+                 ///||||
+                 else if( (pnt->neighbor_cell_type[0] == SE&&pnt->neighbor_cell_type[1] == NE)
+                        ||(pnt->neighbor_cell_type[1] == SE&&pnt->neighbor_cell_type[0] == NE))
+                 {
+                     pnt->point_type = nm_11;  
+                     
+                     pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[jn]]->Index());
+                     pnt->np_position.push_back(N);
+                     pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[js]]->Index());
+                     pnt->np_position.push_back(S);
+                 }
+                 ///-------------------
+                 ///-------------------                  
+                 ///-----.---.---.-----
+                 /// 
+                 else if( (pnt->neighbor_cell_type[0] == SW&&pnt->neighbor_cell_type[1] == SE)
+                        ||(pnt->neighbor_cell_type[1] == SW&&pnt->neighbor_cell_type[0] == SE))
+                 {
+                     pnt->point_type = nm_13;  
+                     
+                     pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[je]]->Index());
+                     pnt->np_position.push_back(E);
+                     pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[jw]]->Index());
+                     pnt->np_position.push_back(W);
+                 }
+
+              }
+
+              // This is a point inside the domain or the point is at a corner but has
+              // four neighbours.
+              else if(pnt->neighbor_cell_type.size()>2) 
+              {
+                  pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[jn]]->Index());
+                  pnt->np_position.push_back(N);
+                  pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[je]]->Index());
+                  pnt->np_position.push_back(E);
+                  pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[jw]]->Index());
+                  pnt->np_position.push_back(W);
+                  pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[js]]->Index());
+                  pnt->np_position.push_back(S);    
+
+                  if(pnt->neighbor_cell_type.size()==3)
+                    pnt->point_type = border;
+                  else if(pnt->neighbor_cell_type.size()==4)
+                    pnt->point_type = intern;
+          
+              }
+
+
+              for(k=0; k<(int)pnt->neighbor_points.size(); k++) 
+                idx_buff[k] = pnt->neighbor_points[k];
+              for(k=0; k<(int)pnt->neighbor_points.size(); k++) 
+              {
+                 buff0 = idx_buff[k];  
+                 buff1 = pnt->neighbor_points[k];
+                 nbp_type =  pnt->np_position[k]; 
+                 l = k;
+                 while(l>0&&idx_buff[l-1]>buff0)  
+                 {
+                    idx_buff[l] = idx_buff[l-1];
+                    pnt->neighbor_points[l] = pnt->neighbor_points[l-1];
+                    pnt->np_position[l] = pnt->np_position[l-1]; 
+                    l--;
+                 }
+                 idx_buff[l] = buff0;  
+                 pnt->neighbor_points[l] = buff1;
+                 pnt->np_position[l] = nbp_type; 
+              }
+              
+              /// Assign boundary condition to this point, if it is close to 
+              /// the geometry entity for the boundary conditions.
+              if(!CheckDirichletBC(pnt))
+              {
+                 if(pnt->point_type != intern)
+                   CheckNuemannBC(pnt); 
+              }
+             
+           }
+        }
 
     } 
     //---------------------------------
-    /*
+    /*!
+       \fn inline bool CheckDirichletBC(Point *pnt)
+       
+       Determine whether a grid point on the boundary is
+       a point assigned with the Dirichlet boundary by geometry
+       entity, which mush be with threhold of the grid size. 
+ 
+       04.2011. WW 
+       
+    */ 
+
+    inline bool FiniteDifference::CheckDirichletBC(Point *pnt)
+    {
+        int i;
+        Point *bc_pnt;
+
+        bc_pnt = NULL;
+        for(i=0; i<(int)BC_Dirichlet.size(); i++)
+        {
+           bc_pnt = BC_Dirichlet[i]->GetClosedPoint(pnt, cell_size);
+           if(bc_pnt)
+             bc_pnt->value = BC_Dirichlet[i]->value;
+        }
+         
+        if(!bc_pnt)
+          return false;
+
+              
+        pnt->bc_type = Dirichlet;
+        pnt->value = bc_pnt->value;
+
+
+        return true;
+       
+         
+    }
+
+    //---------------------------------
+    /*!
+       \fn inline void CheckNeumannBC(Point *pnt)
+       
+       Determine whether a grid point on the boundary is
+       a point assigned with the Neumann boundary by geometry
+       entity, which mush be with threhold of the grid size. 
+ 
+       04.2011. WW 
+       
+    */ 
+
+    inline void FiniteDifference::CheckNuemannBC(Point *pnt)
+    {
+        int i;
+        Point *bc_pnt;
+        bc_pnt = NULL;
+
+        for(i=0; i<(int)BC_Neumann.size(); i++)
+        {
+           bc_pnt = BC_Neumann[i]->GetClosedPoint(pnt, cell_size);
+           if(bc_pnt)
+             bc_pnt->value = BC_Neumann[i]->value;
+        }
+         
+        if(!bc_pnt)
+          return;
+
+        pnt->bc_type = Neumann;
+        pnt->value = bc_pnt->value;
+         
+    }
+    //---------------------------------
+    /*!
        \fn WriteGrid_VTK()
        
        Output Grid and boundary to VTK
@@ -364,12 +644,8 @@ namespace _FDM
        {
            for(j=0; j<ncols; j++)
            {
-
               mat_id = 0;
-              if(  pnt_eqs_index[i*(ncols+1)+j] > -1
-                 &&pnt_eqs_index[(i+1)*(ncols+1)+j] > -1
-                 &&pnt_eqs_index[(i+1)*(ncols+1)+j+1] > -1
-                 &&pnt_eqs_index[i*(ncols+1)+j+1] > -1)
+              if(cell_status[i*ncols+j])
               mat_id = 1;
               os<<mat_id<<endl;
 

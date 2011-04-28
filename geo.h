@@ -12,6 +12,7 @@
 #include "misc.h"
 #include<iostream>
 #include<fstream>
+#include<cmath>
 
 namespace _FDM
 {
@@ -22,7 +23,11 @@ namespace _FDM
      \class  Point
          
    */
-   enum Geo_Point_Type {none, neumann, dirichl};
+   enum Point_Type {none, intern, border, nm_11, nm_12, nm_13, nm_14, nm_21, nm_22, nm_23, nm_24};
+   enum BC_Type{Neumann, Dirichlet};
+   enum NeighborCell_Type {NE, NW, SE, SW};
+   enum NeighborPoint_Type {C, E, N, W, S};
+
    class Point
    {
       public:
@@ -42,19 +47,33 @@ namespace _FDM
 
         real X() const {return coordinates[0];}
         real Y() const {return coordinates[1];}
+        real GetDistanceTo(const Point *a_p)
+           { return sqrt((coordinates[0]-a_p->coordinates[0])
+                        *(coordinates[0]-a_p->coordinates[0])
+                      +  (coordinates[1]-a_p->coordinates[1])
+                        *(coordinates[1]-a_p->coordinates[1]));
+            }
  
         void Write(ostream &os = cout);
         long Index() const {return index;}
+        long GetNeighborIndex(const int ii) const {return neighbor_points[ii]; } 
+        long GetNumNeighborPoints() const {return (long)neighbor_points.size(); } 
+
       private:
         long index;
         long grid_i;
         long grid_j;
 
         real *coordinates; 
-        Geo_Point_Type point_type;
+        /// Save Dirichlet or Neumann value here
+        real value;
+        Point_Type point_type;
+        BC_Type bc_type;
         
 
-        vector<Point*> neighbors; 
+        vector<long> neighbor_points; 
+        vector<NeighborPoint_Type> np_position; 
+        vector<NeighborCell_Type> neighbor_cell_type; 
 
         friend class Polyline;
         friend class FiniteDifference;
