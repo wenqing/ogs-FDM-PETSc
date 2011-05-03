@@ -66,11 +66,11 @@ namespace _FDM
 
  
         /// Time step
-        real dt;
+        float dt;
         /// Start time 
-        real T0;
+        float T0;
         /// End time 
-        real T1;
+        float T1;
         /// Time factor
         real tim_fac;
         ///

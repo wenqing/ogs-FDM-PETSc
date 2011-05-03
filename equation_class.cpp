@@ -85,8 +85,12 @@ void Linear_EQS::ConfigNumerics(Numerics *num, const long n)
   /// Just to avoid compilation warning
   i = n; 
  
-  precond_type = num->GetType();
-  solver_type = num->GetPrecType();
+  /// PDE related
+  precond_type = num->GetPrecType();
+  solver_type =  num->GetType();
+  max_iter = num->GetMax_Iteration();
+  tol = num->GetTolerance();
+
   switch(solver_type)
   {
     case 1:
@@ -412,7 +416,7 @@ void Linear_EQS::Message()
   //
   //system("color 0B");
   cout<<"\n================================================\n";         
-///TODO  cout<<"Linear solver "<<solver_name<<" with "<<precond_name<<":\n";         
+  cout<<"Linear solver "<<solver_name<<" with "<<precond_name<<":\n";         
   //cout<<"\n------------------------------------------------ \n";         
   cout<<"Iterations |";         
   cout<<"Max Iters  |";         

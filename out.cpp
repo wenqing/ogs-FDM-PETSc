@@ -34,8 +34,11 @@ namespace _FDM
            aline = string_To_lower(aline);
            if(aline.find("domain")!=string::npos)
            {
-              fname = file_name +"domain.vtk";
-              os = new ofstream(fname.c_str(), ios::trunc);
+              fname = file_name +"_domain";  
+              /// If Data of all steps can be dumped to a single file, use: 
+              //      os = new ofstream(fname.c_str(), ios::trunc);
+              os = new ofstream(); //(fname.c_str(), ios::trunc);
+              os->clear();
               os->close();
               continue; 
            }

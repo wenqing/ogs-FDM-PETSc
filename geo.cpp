@@ -24,6 +24,10 @@ namespace _FDM
    {
       os<<index<<" "<< coordinates[0]<<" "<<coordinates[1]<<"  0."<<endl;      
    }
+   void Point::Write_VTK(ostream &os)
+   {
+      os<< coordinates[0]<<" "<<coordinates[1]<<"  0."<<endl;      
+   }
 
 
    /*!

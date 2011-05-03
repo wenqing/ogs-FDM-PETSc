@@ -16,6 +16,9 @@ namespace _FDM
          int GetType() const {return type;}
          int GetPrecType() const {return prec_type;}
          int GetSub_Dim() const {return sub_dim;}
+         int GetMax_Iteration() const {return max_ite;}
+         double GetTolerance() const {return tol;}
+
        private:
 
          int type;

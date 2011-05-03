@@ -58,6 +58,7 @@ namespace _FDM
             }
  
         void Write(ostream &os = cout);
+        void Write_VTK(ostream &os = cout);
         long Index() const {return index;}
         long GetNeighborIndex(const int ii) const {return neighbor_points[ii]; } 
         long GetNumNeighborPoints() const {return (long)neighbor_points.size(); } 

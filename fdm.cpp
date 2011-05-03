@@ -754,12 +754,17 @@ namespace _FDM
    */
    void FiniteDifference::TimeSteping()
    {
-       long i;
-       real current_time;
+       long i, istep;
+       float current_time;
+       real *x = eqs->x;
+
        Point *pnt = NULL; 
       
-       eqs->ConfigNumerics(num); 
+       eqs->ConfigNumerics(num);
+       eqs->Initialize(); 
        current_time = T0;
+
+       istep = 0;
        while(current_time<=T1)
        {
           if(rrecharge)
@@ -777,8 +782,11 @@ namespace _FDM
           eqs->Solver();
           
           for(i=0; i<eqs->Size(); i++)
-            u0[i] = u1[i];
+            u0[i] = u1[i] = x[i];
 
+          istep++;
+          Output_Results(current_time, istep);
+     
           current_time += dt;
        }
                 
@@ -803,6 +811,7 @@ namespace _FDM
 
       CSparseMatrix *A = eqs->A;
       real *b = eqs->b; 
+      real *x = eqs->x; 
       
       mat_m = mat->storage;
       mat_l = mat->conductivity*tim_fac;
@@ -811,13 +820,15 @@ namespace _FDM
       size = eqs->Size();
 
       for(i=0; i<size; i++)
+      {
+         x[i] = u0[i];
          b[i] = mat_m*u0[i]/dt;
-
+      }
       *A = 0.; 
       for(i=0; i<size; i++)
       {
          pnt = grid_point_in_use[i];
-         if(pnt->point_type == intern)
+         if(pnt->point_type == intern||pnt->point_type == border)
          {
             for(k=0; k<(int)pnt->neighbor_points.size(); k++)
             {
@@ -865,12 +876,29 @@ namespace _FDM
           
       }
 
+#define aTEST
+#ifdef TEST
+      string fname = file_name + "_matrix.txt" ;
+      ofstream os_m(fname.c_str(), ios::trunc); 
+      eqs->Write(os_m);
+      os_m.close();
+
+#endif 
       /// Set Dirichlet BC
       for(i=0; i<(long)BC_Dirichlet_points.size(); i++) 
       {
           l =  BC_Dirichlet_points[i];
           eqs->SetKnownX_i(l, grid_point_in_use[l]->value); 
       } 
+
+#ifdef TEST
+      fname = file_name + "_bc_matrix.txt" ;
+      os_m.open(fname.c_str(), ios::trunc); 
+      eqs->Write(os_m);
+      os_m.close();
+
+#endif 
+
        
    } 
 
@@ -892,7 +920,7 @@ namespace _FDM
       real e_val;
       
       real mat_m = mat->storage;
-      real mat_l = mat->conductivity;
+      real mat_l = mat->conductivity*tim_fac;
       real h2 = cell_size*cell_size;
 
       if(pnt->bc_type == Neumann)
@@ -946,7 +974,7 @@ namespace _FDM
       real e_val;
       
       real mat_m = mat->storage;
-      real mat_l = mat->conductivity;
+      real mat_l = mat->conductivity*tim_fac;
       real h2 = cell_size*cell_size;
 
       if(pnt->bc_type == Neumann)
@@ -1014,7 +1042,7 @@ namespace _FDM
               if(i_step%a_out->steps == 0)
               {
                  sprintf(stro, "%d", i_step);
-                 n_fname = a_out->fname +stro+"domain.vtk"; 
+                 n_fname = a_out->fname +stro+"_domain.vtk"; 
                  doit = true;
               }
            }
@@ -1035,15 +1063,20 @@ namespace _FDM
               {
                  sprintf(stro, "%f", c_tim);
                  doit = true;                  
-                 n_fname = a_out->fname +stro+"domain.vtk"; 
+                 n_fname = a_out->fname +stro+".vtk"; 
+                 a_out->at_times.erase(a_out->at_times.begin()+k);
               } 
            }         
 
            if(doit)
            {
+              
+              a_out->os->clear();
               a_out->os->open(n_fname.c_str(), ios::trunc);
-              Output_Domain_VTK(*(a_out->os));
-              a_out->os->close();
+              if(a_out->os->good())
+                Output_Domain_VTK(*(a_out->os));
+              //a_out->os->clear();
+              a_out->os->close(); 
            }
 
         }
@@ -1064,7 +1097,7 @@ namespace _FDM
 
        /// Loop over grid points 
        for(i=0; i<size; i++)
-         grid_point_in_use[i]->Write(os);
+         grid_point_in_use[i]->Write_VTK(os);
    
 
        os<<"\nCELLS "<<num_cell_in_use<<" "<<num_cell_in_use*5<<endl;
