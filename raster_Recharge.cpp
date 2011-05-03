@@ -6,17 +6,18 @@
 #include <sstream>
 #include <limits>
 #include "raster_Recharge.h"
+#include "misc.h"
 
 /// Constrcutor
-Raster_Recharge::Raster_Recharge(string fpath, istream &ins)
+Raster_Recharge::Raster_Recharge()
 {
   string aline;
   double step;
   std::stringstream ss;
   string key, uname;  
 
-  file_path =  fpath;
- 
+  uname = file_name+".pcp";
+  ifstream ins(uname.c_str());
   getline(ins, aline);     
   ss.str(aline);
   ss>> key >> uname;

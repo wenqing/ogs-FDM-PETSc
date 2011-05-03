@@ -15,7 +15,7 @@ using namespace std;
 class Raster_Recharge
 {
    public:
-    Raster_Recharge(string fpath, istream &ins = cin);
+    Raster_Recharge();
     ~Raster_Recharge()
      {
         delete [] GIS_shape_head;
@@ -36,9 +36,7 @@ class Raster_Recharge
     */
     double Assign_Grid_Point(const double x, const double y);
    private: 
-   
-    string file_path;   
- 
+    
     double ratio;
     double *GIS_shape_head; 
     double *recharge_cell_value;

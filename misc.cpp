@@ -118,3 +118,4 @@ long binarySearch(long *arr, long target, long start, long end)
    }
    return -1;
 }
+

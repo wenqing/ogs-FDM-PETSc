@@ -17,12 +17,17 @@
 
 #include "fdm.h"
 #include "mat.h"
-#include "geo.h"
+//#include "geo.h"
 #include "bc.h"
 #include "numerics.h"
+#include "matrix_class.h"
 #include "equation_class.h"
+#include "out.h"
+
+#include "raster_Recharge.h"
 
 using namespace std;
+using namespace Math_Group;
 namespace _FDM
 {
 //--------------- class  FiniteDifference ---------------------
@@ -34,7 +39,8 @@ namespace _FDM
       
       string dat_fname = file_name+".dat"; 
       ifstream ins(dat_fname.c_str());
-
+      ic = NULL;
+      rrecharge = NULL;
 
       boundary = GetPolylineByName("boundary");
       if(!boundary)
@@ -140,26 +146,54 @@ namespace _FDM
             continue;
          }
 
+         if(aline.find("initial")!=string::npos)
+         {
+            // Only one ic is needed so far. Exended it to more than one ic instances is possible.
+            // If more than one ic are needed, removing if(!ic) and put ic to a vector 
+            // as BC_Neumann or BC_Dirichlet.
+            if(!ic) 
+              ic = new ConditionData(ins);             
+
+         }
          if(aline.find("neumann")!=string::npos)
          {
-            BC_Neumann.push_back(new BoundayCondition(ins));
+            BC_Neumann.push_back(new ConditionData(ins));
             BC_Neumann[BC_Neumann.size()-1]->SetGeoEntityType("neumann");
          } 
          if(aline.find("dirichlet")!=string::npos)
          {
-            BC_Dirichlet.push_back(new BoundayCondition(ins));
+            BC_Dirichlet.push_back(new ConditionData(ins));
             BC_Dirichlet[BC_Dirichlet.size()-1]->SetGeoEntityType("dirichlet");
          }
+         if(aline.find("raster")!=string::npos)
+            rrecharge = new Raster_Recharge();
                   
+         if(aline.find("output")!=string::npos)
+            outp.push_back(new Output(ins));
+
       }
   
+     
+
       CaterogorizeGridPoint();
 
       /// Generate a linear solver
       sp = new SparseTable(this);
-      eqs = new Linear_EQS(*sp, 1);      
-
+      eqs = new Linear_EQS(*sp, 1); 
       //sp->Write();
+
+      /// Initialize solution arrays;
+      long size = (long)grid_point_in_use.size();
+      u0 = new real[size];      
+      u1 = new real[size];      
+
+      /// Asign the initial contidion.
+      long i;
+      for(i=0; i<size; i++)
+      {
+         u0[i] = u1[i] = ic->value;
+      }
+
 
       WriteGrid_VTK();
      
@@ -171,9 +205,24 @@ namespace _FDM
    FiniteDifference::~FiniteDifference()   
    {
       delete mat;
+      delete num;
       delete sp;
       delete eqs;
+      delete ic;
+
+      if(rrecharge) delete rrecharge;
+
+      DeleteVector(BC_Neumann); 
+      DeleteVector(BC_Dirichlet); 
+      DeleteVector(grid_point_in_use);
+      DeleteVector(outp);
+      
+
+      DeleteArray(u0); 
+      DeleteArray(u1); 
+
    } 
+
 
 //----------------------------------------------------------
    /*!
@@ -203,6 +252,9 @@ namespace _FDM
        os<<"\t end_time:\t"<<T1<<endl;
        os<<"\t step_size:\t"<<dt<<endl<<endl;
 
+       os<<"--- Initial condition"<<endl; 
+       ic->Write(os);
+
        /// Boundary condition
        int i;
        for(i=0; i<(int)BC_Neumann.size(); i++)
@@ -215,21 +267,132 @@ namespace _FDM
           os<<"--- Dirichlet BC"<<endl;
           BC_Dirichlet[i]->Write(os);            
        }
+
+       for(i=0; i<(int)outp.size(); i++)
+          outp[i]->Write(os);            
  
+
        os<<"..."<<endl;
     }
 
+    //---------------------------------
     /*!
-      \fn  AssembleEQS()
-        
-      Assemble equation system of FDM   
-
-    */
-    void FiniteDifference::AssembleEQS()
+       \fn WriteGrid_VTK()
+       
+       Output Grid and boundary to VTK
+ 
+       04.2011. WW 
+       
+    */ 
+    void FiniteDifference::WriteGrid_VTK()
     {
-         
-    }
+       long i, j, n_points;
+       double x, y;
+       long size = (ncols+1)*(nrows+1);
+       string dat_fname = file_name+"_grid.vtk"; 
+       ofstream os(dat_fname.c_str(), ios::trunc);
+
+       setw(12);
+       os.precision(12);
+
+       os<<"# vtk DataFile Version 4.0\nGrid of Oobs\nASCII\n"<<endl;
+       os<<"DATASET UNSTRUCTURED_GRID"<<endl;
+       os<<"POINTS "<<(nrows+1)*(ncols+1)<<" double"<<endl;
+
+       /// Loop over grid points 
+       for(i=0; i<nrows+1; i++)
+       {
+          y = yll0 + cell_size*i;
+          for(j=0; j<ncols+1; j++)
+          {
+             x = xll0 + cell_size*j;             
+             os<<x<<"  "<<y<<"  0."<<endl;
+           
+         }
+       }
+   
+       os<<"\nCELLS "<<nrows*ncols<<" "<<nrows*ncols*5<<endl;
+       /// Loop over grid cells
+       for(i=0; i<nrows; i++)
+       {
+          for(j=0; j<ncols; j++)
+          {
+             os<<"4 ";
+             os<<i*(ncols+1)+j<<" "<<i*(ncols+1)+j+1<<" "
+               <<(i+1)*(ncols+1)+j+1<<" "<<(i+1)*(ncols+1)+j<<endl;            
+          }
+
+       }
+       // CELL types
+       os << "CELL_TYPES " << nrows*ncols << endl; 
+       for(i=0; i<nrows*ncols; i++)
+         os<<"9 "<<endl;
+
+      
+       os<<"POINT_DATA "<<size<<endl;
+       os<<"SCALARS Points_in_Domain float 1\nLOOKUP_TABLE default"<<endl;
+       for(i=0; i<size; i++)
+         os<<(pnt_eqs_index[i]>-1 ? 1:0)<<endl;
+
+
+       os<<"CELL_DATA "<<nrows*ncols<<endl;
+       os<<"SCALARS Material_Group int 1\nLOOKUP_TABLE default"<<endl;
+       int mat_id = 0;
+       for(i=0; i<nrows; i++)
+       {
+           for(j=0; j<ncols; j++)
+           {
+              mat_id = 0;
+              if(cell_status[i*ncols+j])
+              mat_id = 1;
+              os<<mat_id<<endl;
+
+           }
+       } 
+       os.close();
+
+       dat_fname = file_name+"_boundary.vtk"; 
+       os.open(dat_fname.c_str(), ios::trunc);
+
+
+       os<<"# vtk DataFile Version 4.0\nGrid of Oobs\nASCII\n"<<endl;
+       os<<"DATASET UNSTRUCTURED_GRID"<<endl;
+       os<<"POINTS "<<boundary->points.size()<<" double"<<endl;
+
+       /// Loop over grid points 
+       n_points = (long)boundary->points.size(); 
+       for(i=0; i<n_points; i++)
+         os<<boundary->points[i]->X()<<"  "<<boundary->points[i]->Y()<<"  0."<<endl;
+       os<<endl;   
   
+       os<<"\nCELLS "<<n_points<<" "<<n_points*3<<endl;
+       /// Boundary 
+       j = n_points-1; 
+       for(i=0; i<n_points; i++)
+       {
+          os<<"2 "<<j<<" "<<i<<endl;
+          j = i;
+          
+       }
+      
+
+       // CELL types
+       os << "CELL_TYPES " << n_points << endl; 
+       for(i=0; i<n_points; i++)
+         os<<"3 "<<endl;
+  
+
+       os<<"POINT_DATA "<<n_points<<endl;
+       os<<"SCALARS BC_type int 1\nLOOKUP_TABLE default"<<endl;
+       for(i=0; i<n_points; i++)
+         os<<boundary->points[i]->point_type<<endl;
+
+
+       os.close();
+    }
+
+  
+//----------------------------------------------------------
     /*!
       \fn  CaterogorizeGridPoint();
         
@@ -258,6 +421,8 @@ namespace _FDM
         for(i=0; i<size; i++)
           pnt_eqs_index[i] = -1;
 
+        
+        num_cell_in_use = 0; 
         /// Loop over grid cells
         for(i=0; i<nrows; i++)
         {
@@ -275,6 +440,7 @@ namespace _FDM
                  &&boundary->PointInDomain(x1,y1)
                  &&boundary->PointInDomain(x0,y1))
               {  
+                 num_cell_in_use++;
                  cell_status[i*ncols+j] = true;
                  if(pnt_eqs_index[i*(ncols+1)+j] == -1)
                  {
@@ -539,6 +705,7 @@ namespace _FDM
         pnt->bc_type = Dirichlet;
         pnt->value = bc_pnt->value;
 
+        BC_Dirichlet_points.push_back(pnt->Index());
 
         return true;
        
@@ -577,122 +744,358 @@ namespace _FDM
         pnt->value = bc_pnt->value;
          
     }
-    //---------------------------------
-    /*!
-       \fn WriteGrid_VTK()
+//----------------------------------------------------------
+   /*!
+     \fn  FiniteDifference::TimeSteping()
+      
+      Assemble the system of equations of FDM
+     
+      04.2011 WW
+   */
+   void FiniteDifference::TimeSteping()
+   {
+       long i;
+       real current_time;
+       Point *pnt = NULL; 
+      
+       eqs->ConfigNumerics(num); 
+       current_time = T0;
+       while(current_time<=T1)
+       {
+          if(rrecharge)
+          {
+             real *rhs = eqs->b;
+             rrecharge->Read_Raster(current_time);
+             for(i=0; i<eqs->Size(); i++)
+             {
+                pnt = grid_point_in_use[i];
+                rhs[i] -= rrecharge->Assign_Grid_Point(pnt->X(), pnt->Y());
+             }
+          }
+          
+          AssembleEQS();
+          eqs->Solver();
+          
+          for(i=0; i<eqs->Size(); i++)
+            u0[i] = u1[i];
+
+          current_time += dt;
+       }
+                
+
+   }
+//----------------------------------------------------------
+   /*!
+     \fn  FiniteDifference::AssembleEQS()
+      
+      Assemble the system of equations of FDM
+     
+      04.2011 WW
+   */
+   void FiniteDifference::AssembleEQS()
+   {
+      int k;
+      long i, l, size;
+      Point *pnt; 
+      real e_val, h2; 
+      real mat_m;
+      real mat_l;
+
+      CSparseMatrix *A = eqs->A;
+      real *b = eqs->b; 
+      
+      mat_m = mat->storage;
+      mat_l = mat->conductivity*tim_fac;
+      h2 = cell_size*cell_size;
+
+      size = eqs->Size();
+
+      for(i=0; i<size; i++)
+         b[i] = mat_m*u0[i]/dt;
+
+      *A = 0.; 
+      for(i=0; i<size; i++)
+      {
+         pnt = grid_point_in_use[i];
+         if(pnt->point_type == intern)
+         {
+            for(k=0; k<(int)pnt->neighbor_points.size(); k++)
+            {
+               if(pnt->np_position[k]==C)
+                  e_val = mat_m/dt - 4.0*mat_l/h2;
+               else
+                  e_val = mat_l/h2;
+               (*A)(i, pnt->neighbor_points[k]) = e_val;
+            }
+         }
+         else
+         {
+             switch(pnt->point_type)
+             {
+                case nm_11:
+                  SetBC_at_PointOnLine(i, pnt, E);
+                  break;
+                case nm_12:
+                  SetBC_at_PointOnLine(i, pnt, W);
+                  break;
+                case nm_13:
+                  SetBC_at_PointOnLine(i, pnt, S);
+                  break;                 
+                case nm_14:
+                  SetBC_at_PointOnLine(i, pnt, N);
+                  break;                 
+                case nm_21:
+                  SetBC_at_Point_atCCorner(i, pnt, E);
+                  break;
+                case nm_22:
+                  SetBC_at_Point_atCCorner(i, pnt, W);
+                  break;
+                case nm_23:
+                  SetBC_at_Point_atCCorner(i, pnt, S);
+                  break;
+                case nm_24:
+                  SetBC_at_Point_atCCorner(i, pnt, N);
+                  break;
+                //case border:
+                //  SetBC_at_Point_atCCorner(i, pnt, N);
+                //  break;
+             }
+
+         }
+          
+      }
+
+      /// Set Dirichlet BC
+      for(i=0; i<(long)BC_Dirichlet_points.size(); i++) 
+      {
+          l =  BC_Dirichlet_points[i];
+          eqs->SetKnownX_i(l, grid_point_in_use[l]->value); 
+      } 
        
-       Output Grid and boundary to VTK
+   } 
+
+//----------------------------------------------------------
+   /*!
+      \fn void FiniteDifference::SetBC_at_PointOnLine(Point *pnt)
+
+       Set Dirichlet and Neumann BC for a point, which is on
+       a straight line.
+       
+       04.2011 WW
+       
+   */
+   inline void FiniteDifference::SetBC_at_PointOnLine(long i, Point *pnt, NeighborPoint_Type nbt)
+   {
+      int k;
+      CSparseMatrix *A = eqs->A;
+      real *b = eqs->b; 
+      real e_val;
+      
+      real mat_m = mat->storage;
+      real mat_l = mat->conductivity;
+      real h2 = cell_size*cell_size;
+
+      if(pnt->bc_type == Neumann)
+      {
+          for(k=0; k<(int)pnt->neighbor_points.size(); k++)
+          {
+             if(pnt->np_position[k]==C) 
+                e_val = mat_m/dt - 4.0*mat_l/h2;
+             else if(pnt->np_position[k]==nbt)
+                e_val = 2.0*mat_l/h2;
+             else
+                e_val = mat_l/h2;
+             (*A)(i, pnt->neighbor_points[k]) = e_val;
+           }
+           b[i] -= 2.*pnt->value/cell_size;                      
  
-       04.2011. WW 
+      }
+      else if(pnt->bc_type == Dirichlet)
+      {
+          for(k=0; k<(int)pnt->neighbor_points.size(); k++)
+          {
+             if(pnt->np_position[k]==C) 
+                 e_val = mat_m/dt - 4.0/h2;
+             /// nbt is point S
+             else if(pnt->np_position[k]==nbt)
+                 e_val = 0.;
+             else
+                 e_val = mat_l/h2;
+             (*A)(i, pnt->neighbor_points[k]) = e_val;
+             b[i] -= 2.0*pnt->value/h2;
+          }
+      }
+               
+   }
+
+//----------------------------------------------------------
+   /*!
+      \fn void FiniteDifference::SetBC_at_PointOnLine(Point *pnt)
+
+       Set Dirichlet and Neumann BC for a point, which is at
+       a convex corner.
        
-    */ 
-    void FiniteDifference::WriteGrid_VTK()
+       04.2011 WW
+       
+   */
+   inline void FiniteDifference::SetBC_at_Point_atCCorner(long i, Point *pnt, NeighborPoint_Type nbt)
+   {
+      int k;
+      CSparseMatrix *A = eqs->A;
+      real *b = eqs->b; 
+      real e_val;
+      
+      real mat_m = mat->storage;
+      real mat_l = mat->conductivity;
+      real h2 = cell_size*cell_size;
+
+      if(pnt->bc_type == Neumann)
+      {
+          for(k=0; k<(int)pnt->neighbor_points.size(); k++)
+          {
+             if(pnt->np_position[k]==C) 
+                e_val = mat_m/dt - 4.0*mat_l/h2;
+             else
+                e_val = 2.0*mat_l/h2;
+
+             (*A)(i, pnt->neighbor_points[k]) = e_val;
+           }
+           b[i] -= 4.*pnt->value/cell_size;                      
+ 
+      }
+      else if(pnt->bc_type == Dirichlet)
+      {
+          /// Average method for the value of the neighbor point that
+          /// locates the soutside of the domain
+          /// r is the distance for the point to other neighbors
+          /// (/r1*r2*r4*r0/(r1+r2+r3+r4))(u1/r1+u2/r2+u3/r3+u0/r0)
+          for(k=0; k<(int)pnt->neighbor_points.size(); k++)
+          {
+             if(pnt->np_position[k]==C) 
+                 e_val = mat_m/dt - 4.0/h2;
+             else 
+                 e_val = 0.;
+
+             (*A)(i, pnt->neighbor_points[k]) = e_val;
+             b[i] -= 4.0*pnt->value/h2;
+          }
+      }
+               
+   }
+
+   /*!
+      \fn Output_Results
+      Output results at a specific time 
+   */
+    void FiniteDifference::Output_Results(const float c_tim, const int i_step)
     {
-       long i, j, n_points;
-       double x, y;
-       long size = (ncols+1)*(nrows+1);
-       string dat_fname = file_name+"_grid.vtk"; 
-       ofstream os(dat_fname.c_str(), ios::trunc);
+        int i, j, k;
+        Output * a_out;
+        real dif, tol_max, tol;
+        
+        bool doit = false;
+
+        tol = dt/(T1-T0);
+
+
+        // The following three lines will be remove if all results of steps can be
+        // output in one single VTK file
+        string n_fname; 
+        static char stro[102];  
+
+        for(i=0; i<(int)outp.size(); i++)
+        {
+           a_out = outp[i];
+           
+           
+           //a_out->os->open(fname.c_str(), ios::app);
+           if(a_out->steps >0)
+           {
+              if(i_step%a_out->steps == 0)
+              {
+                 sprintf(stro, "%d", i_step);
+                 n_fname = a_out->fname +stro+"domain.vtk"; 
+                 doit = true;
+              }
+           }
+           else if(a_out->at_times.size()>0)
+           {  
+              k = -1;
+              tol_max = INT_MAX;
+              for(j=0; j<(int)a_out->at_times.size(); j++)
+              {
+                 dif = fabs(a_out->at_times[j]-c_tim);
+                 if(dif<tol_max)
+                 {
+                    tol_max = dif;
+                    k = j;
+                 }
+              } 
+              if(tol_max<tol) 
+              {
+                 sprintf(stro, "%f", c_tim);
+                 doit = true;                  
+                 n_fname = a_out->fname +stro+"domain.vtk"; 
+              } 
+           }         
+
+           if(doit)
+           {
+              a_out->os->open(n_fname.c_str(), ios::trunc);
+              Output_Domain_VTK(*(a_out->os));
+              a_out->os->close();
+           }
+
+        }
+    }
+
+//------------------------------------------------------
+    inline void FiniteDifference::Output_Domain_VTK(ostream &os) 
+    {
+       long i, j, k;
+       long size = (long)grid_point_in_use.size();
 
        setw(12);
        os.precision(12);
 
        os<<"# vtk DataFile Version 4.0\nGrid of Oobs\nASCII\n"<<endl;
        os<<"DATASET UNSTRUCTURED_GRID"<<endl;
-       os<<"POINTS "<<(nrows+1)*(ncols+1)<<" double"<<endl;
+       os<<"POINTS "<<size<<" double"<<endl;
 
        /// Loop over grid points 
-       for(i=0; i<nrows+1; i++)
-       {
-          y = yll0 + cell_size*i;
-          for(j=0; j<ncols+1; j++)
-          {
-             x = xll0 + cell_size*j;             
-             os<<x<<"  "<<y<<"  0."<<endl;
-           
-         }
-       }
+       for(i=0; i<size; i++)
+         grid_point_in_use[i]->Write(os);
    
-       os<<"\nCELLS "<<nrows*ncols<<" "<<nrows*ncols*5<<endl;
+
+       os<<"\nCELLS "<<num_cell_in_use<<" "<<num_cell_in_use*5<<endl;
        /// Loop over grid cells
        for(i=0; i<nrows; i++)
        {
           for(j=0; j<ncols; j++)
           {
+             k = i*ncols+j;
+             if(!cell_status[k])
+               continue;
+
              os<<"4 ";
-             os<<i*(ncols+1)+j<<" "<<i*(ncols+1)+j+1<<" "
-               <<(i+1)*(ncols+1)+j+1<<" "<<(i+1)*(ncols+1)+j<<endl;            
+             os<<pnt_eqs_index[i*(ncols+1)+j]<<" "<<pnt_eqs_index[i*(ncols+1)+j+1]<<" "
+               <<pnt_eqs_index[(i+1)*(ncols+1)+j+1]<<" "<<pnt_eqs_index[(i+1)*(ncols+1)+j]<<endl;            
           }
 
        }
        // CELL types
-       os << "CELL_TYPES " << nrows*ncols << endl; 
-       for(i=0; i<nrows*ncols; i++)
+       os << "CELL_TYPES " << num_cell_in_use << endl; 
+       for(i=0; i<num_cell_in_use; i++)
          os<<"9 "<<endl;
 
       
        os<<"POINT_DATA "<<size<<endl;
-       os<<"SCALARS Points_in_Domain float 1\nLOOKUP_TABLE default"<<endl;
+       os<<"SCALARS Head[m] float 1\nLOOKUP_TABLE default"<<endl;
        for(i=0; i<size; i++)
-         os<<(pnt_eqs_index[i]>-1 ? 1:0)<<endl;
+         os<<u1[i]<<endl;
 
 
-       os<<"CELL_DATA "<<nrows*ncols<<endl;
-       os<<"SCALARS Material_Group int 1\nLOOKUP_TABLE default"<<endl;
-       int mat_id = 0;
-       for(i=0; i<nrows; i++)
-       {
-           for(j=0; j<ncols; j++)
-           {
-              mat_id = 0;
-              if(cell_status[i*ncols+j])
-              mat_id = 1;
-              os<<mat_id<<endl;
-
-           }
-       } 
-       os.close();
-
-       dat_fname = file_name+"_boundary.vtk"; 
-       os.open(dat_fname.c_str(), ios::trunc);
-
-
-       os<<"# vtk DataFile Version 4.0\nGrid of Oobs\nASCII\n"<<endl;
-       os<<"DATASET UNSTRUCTURED_GRID"<<endl;
-       os<<"POINTS "<<boundary->points.size()<<" double"<<endl;
-
-       /// Loop over grid points 
-       n_points = (long)boundary->points.size(); 
-       for(i=0; i<n_points; i++)
-         os<<boundary->points[i]->X()<<"  "<<boundary->points[i]->Y()<<"  0."<<endl;
-       os<<endl;   
-  
-       os<<"\nCELLS "<<n_points<<" "<<n_points*3<<endl;
-       /// Boundary 
-       j = n_points-1; 
-       for(i=0; i<n_points; i++)
-       {
-          os<<"2 "<<j<<" "<<i<<endl;
-          j = i;
-          
-       }
-      
-
-       // CELL types
-       os << "CELL_TYPES " << n_points << endl; 
-       for(i=0; i<n_points; i++)
-         os<<"3 "<<endl;
-  
-
-       os<<"POINT_DATA "<<n_points<<endl;
-       os<<"SCALARS BC_type int 1\nLOOKUP_TABLE default"<<endl;
-       for(i=0; i<n_points; i++)
-         os<<boundary->points[i]->point_type<<endl;
-
-
-       os.close();
-    }
-
+    }      
 }
 
 

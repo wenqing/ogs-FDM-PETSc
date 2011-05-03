@@ -49,8 +49,9 @@ int main ( int argc, char *argv[] )
 
   GeoRead();
   FiniteDifference *fdm = new FiniteDifference();
+  fdm->TimeSteping();
     
-  ///TEST 
+#ifdef TEST_OUT  ///TEST 
   string fname = file_name+"_dat.out";
   ofstream os(fname.c_str(), ios::trunc);
   fdm->Write(os);
@@ -61,34 +62,10 @@ int main ( int argc, char *argv[] )
   WriteGeoData(os);
   os.close();
 
-/*
-  /// Test
-  ifstream ins(file_name.c_str());
-
-  if(!ins.good()) 
-  {
-     cout<<"Could not find file "<<file_name<<". Stop now!"<<endl;
-     exit(1);
-  } 
-
-  string aline;
-  Mat_Property *mat = NULL;
-  for(;;)
-  {
-     getline(ins, aline);
-     aline = string_To_lower(aline);
-     if(aline.find("material")!=string::npos)
-     {
-        mat = new Mat_Property(ins);
-        mat->Write();
-     }
-  }
-  
-  if(mat) delete mat; 
-  */
-  ////
+#endif
 
   delete fdm;
+  GeoReleaseMemory();
 
   time_cpu += clock();
   cout<<"\n\tCPU time elapsed: "  <<(double)time_cpu / CLOCKS_PER_SEC<<"s"<<endl;

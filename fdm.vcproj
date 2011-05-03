@@ -211,6 +211,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\out.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\raster_Recharge.cpp"
 				>
 			</File>
@@ -250,6 +254,10 @@
 			</File>
 			<File
 				RelativePath=".\numerics.h"
+				>
+			</File>
+			<File
+				RelativePath=".\out.h"
 				>
 			</File>
 			<File

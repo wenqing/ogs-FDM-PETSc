@@ -11,13 +11,14 @@ Programing:
 //
 #include "matrix_class.h"
 
-namespace _FDM{class Numerics;}
+namespace _FDM{class Numerics; class FiniteDifference;}
 
 //
 namespace Math_Group
 {
+/// Using PDE related classes
 using _FDM::Numerics;
-
+using _FDM::FiniteDifference;
 //
 class Linear_EQS
 {
@@ -69,6 +70,7 @@ class Linear_EQS
     double NormX();
     double NormRHS() { return bNorm; } 
 
+    long Size() const {if(A) return A->Dim(); else return size_global;}
     // Write
     void Write(ostream &os=cout);    
     void Write_BIN(ostream &os);    
@@ -107,6 +109,10 @@ class Linear_EQS
     inline bool CheckNormRHS(const double normb_new);
     //
     void Message();
+
+    /// Using PDE related classes
+    friend class _FDM::FiniteDifference;
+      
 //
 };   
 }

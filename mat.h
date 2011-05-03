@@ -7,6 +7,8 @@
 using namespace std;
 namespace _FDM
 {
+   class FiniteDifference;
+
    class Mat_Property
    {
        public:
@@ -17,7 +19,9 @@ namespace _FDM
 
        private:
          real conductivity;
-         real storage;      
+         real storage;  
+
+         friend class FiniteDifference;     
    };
    
 }

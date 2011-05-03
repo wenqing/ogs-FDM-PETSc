@@ -1,5 +1,5 @@
 /*!
-   \file File defines class BoundayCondition
+   \file File defines class ConditionData
   
    04.2011. WW
 */
@@ -16,8 +16,8 @@
 using namespace std;
 namespace _FDM
 {
-   //--------------- class  BoundayCondition ---------------------
-   BoundayCondition::BoundayCondition(ifstream &ins)
+   //--------------- class  ConditionData ---------------------
+   ConditionData::ConditionData(ifstream &ins)
    {
      long ID = 0;
      string aline;
@@ -48,6 +48,7 @@ namespace _FDM
               point = GetPointByID(ID);             
 
            }
+           //else if(aline.find("domain")!=string::npos)
            ss.clear();
         } 
         if(aline.find("value")!=string::npos) 
@@ -64,14 +65,14 @@ namespace _FDM
  
    //--------------------------------------------------
    /*!
-   \fn  Point* BoundayCondition::GetClosedPoint(Point *pnt)
+   \fn  Point* ConditionData::GetClosedPoint(Point *pnt)
       
       For a given point pnt, find a closed point of geometry
       entity
       
       04.2011. WW
    */
-   Point* BoundayCondition::GetClosedPoint(const Point *pnt, const double tol)
+   Point* ConditionData::GetClosedPoint(const Point *pnt, const double tol)
    {
       int k;
       Point *bc_pnt;
@@ -112,7 +113,7 @@ namespace _FDM
    }
 
    /// Output boundary condition 
-   void BoundayCondition::Write(ostream &os)
+   void ConditionData::Write(ostream &os)
    {
       os<<"\t geometry: ";
       if(ply)
@@ -123,7 +124,7 @@ namespace _FDM
    }
 
    /// As the funtion name
-   void BoundayCondition::SetGeoEntityType(string type_name)
+   void ConditionData::SetGeoEntityType(string type_name)
    {
        BC_Type pnt_bc_type;
        if(type_name.find("neumann")!=string::npos)

@@ -4,6 +4,7 @@
 #include<iostream>
 
 #include "misc.h"
+#include "geo.h"
 
 /*!
  \class  FiniteDifference
@@ -16,13 +17,15 @@
 */
 namespace Math_Group {class Linear_EQS; class SparseTable;}
 
+class Raster_Recharge;
 namespace _FDM
 {
    class Mat_Property;
    class Point;
    class Polyline; 
-   class BoundayCondition;
+   class ConditionData;
    class Numerics;
+   class Output;
 
    using Math_Group::Linear_EQS;
    using Math_Group::SparseTable;
@@ -34,8 +37,10 @@ namespace _FDM
         FiniteDifference();
         ~FiniteDifference();   
 
+        void TimeSteping(); 
         void AssembleEQS(); 
 
+        void Output_Results(const float c_tim, const int i_step);
         void Write(ostream &os = cout);
         void WriteGrid_VTK();
 
@@ -59,9 +64,6 @@ namespace _FDM
         /// Cell size
         real cell_size; 
 
-        ///
-        vector<Point*>  grid_point_in_use;
-        
  
         /// Time step
         real dt;
@@ -81,26 +83,48 @@ namespace _FDM
         Numerics *num; 
 
         /// Boundary Condition
-        vector<BoundayCondition*> BC_Neumann; 
-        vector<BoundayCondition*> BC_Dirichlet; 
+        vector<ConditionData*> BC_Neumann; 
+        vector<ConditionData*> BC_Dirichlet; 
+        vector<long> BC_Dirichlet_points; 
+        ConditionData *ic;
+         
+        /// Source term
+        Raster_Recharge *rrecharge;
+
+        
+        /// Output
+        vector<Output*> outp;
 
         /// Boundary of Domain
         Polyline *boundary;
+
+        /// Output control (so far only domain is considered)
+        /// If other geometry
   
         /// Save equation indicies of grid points 
         vector<long> pnt_eqs_index;
-
-        /// Cell mark. for output
+        ///
+        vector<Point*>  grid_point_in_use;
+        
+        /// Cell mark. 
         vector<bool> cell_status;
+        ///
+        long num_cell_in_use;
+  
         void CaterogorizeGridPoint();
+
+
+
 
         /// Set Dirichlet boundary condition
         inline bool CheckDirichletBC(Point *pnt);
         inline void CheckNuemannBC(Point *pnt);
+        inline void SetBC_at_PointOnLine(long i, Point *pnt, NeighborPoint_Type nbt);
+        inline void SetBC_at_Point_atCCorner(long i, Point *pnt, NeighborPoint_Type nbt);
  
+        inline void Output_Domain_VTK(ostream &os);
 
-
-        friend class BoundayCondition; 
+        friend class ConditionData; 
         friend class Math_Group::SparseTable; 
 
    };

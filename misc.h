@@ -43,4 +43,36 @@ extern long binarySearch(long *arr, long target, long start, long end);
 */
 extern void Read_Block(ifstream &ins, vector<string> &key, vector<float> & key_value);
 
+/*!
+\fn  DeleteArray(num *an_array)
+    
+  Release the memory of arrary allocated by using 'new'. 
+
+  10.2010
+*/
+/*!
+\fn  DeleteArray(num *an_array)
+    
+  Release the memory of arrary allocated by using 'new'. 
+
+  10.2010
+*/
+template<class num> void  DeleteArray(num *an_array)
+{
+   if(an_array) delete [] an_array;
+   an_array = NULL; 
+}
+template<class num> void  DeleteVector(vector<num*> &a_vec)
+{
+   
+   while (a_vec.size()>0)
+   {
+      delete a_vec[(int)a_vec.size()-1];
+      a_vec.pop_back();
+   }
+   
+}
+
+
+
 #endif

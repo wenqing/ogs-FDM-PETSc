@@ -10,15 +10,15 @@ namespace _FDM
    class Polyline;
     
    /*!
-      \class BoundayCondition
+      \class ConditionData
        
-      Manage Boundary conditions  
+      Manage Initial Boundary conditions  
    */
-   class BoundayCondition
+   class ConditionData
    {
        public:
-         BoundayCondition(ifstream &ins);
-         ~BoundayCondition() {}
+         ConditionData(ifstream &ins);
+         ~ConditionData() {}
 
          void Write(ostream &os = cout);
 
@@ -27,7 +27,7 @@ namespace _FDM
          Point* GetClosedPoint(const Point *pnt, const double tol);
        private:
 
-         //BC_Type bc_type;
+
          Point *point;
          Polyline *ply; 
          real value;   

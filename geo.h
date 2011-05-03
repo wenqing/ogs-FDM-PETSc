@@ -18,7 +18,7 @@ namespace _FDM
 {
    
    class FiniteDifference;
-   class BoundayCondition; 
+   class ConditionData; 
    /*!
      \class  Point
          
@@ -27,7 +27,8 @@ namespace _FDM
    enum BC_Type{Neumann, Dirichlet};
    enum NeighborCell_Type {NE, NW, SE, SW};
    enum NeighborPoint_Type {C, E, N, W, S};
-
+  
+   /// class Geo_Root;
    class Point
    {
       public:
@@ -48,16 +49,19 @@ namespace _FDM
         real X() const {return coordinates[0];}
         real Y() const {return coordinates[1];}
         real GetDistanceTo(const Point *a_p)
-           { return sqrt((coordinates[0]-a_p->coordinates[0])
-                        *(coordinates[0]-a_p->coordinates[0])
-                      +  (coordinates[1]-a_p->coordinates[1])
-                        *(coordinates[1]-a_p->coordinates[1]));
+           {
+              real *a_coord = a_p->coordinates; 
+              return sqrt((coordinates[0]-a_coord[0])
+                        *(coordinates[0]-a_coord[0])
+                      +  (coordinates[1]-a_coord[1])
+                        *(coordinates[1]-a_coord[1]));
             }
  
         void Write(ostream &os = cout);
         long Index() const {return index;}
         long GetNeighborIndex(const int ii) const {return neighbor_points[ii]; } 
         long GetNumNeighborPoints() const {return (long)neighbor_points.size(); } 
+        
 
       private:
         long index;
@@ -77,7 +81,7 @@ namespace _FDM
 
         friend class Polyline;
         friend class FiniteDifference;
-        friend class BoundayCondition; 
+        friend class ConditionData; 
 
    };
 
@@ -90,10 +94,7 @@ namespace _FDM
     {
         public:
           Polyline(ifstream &ins, string ply_name);
-          ~Polyline()
-            {
-               points.clear();
-            }
+          ~Polyline();
 
         string Name() const {return name;}
 
@@ -106,7 +107,7 @@ namespace _FDM
           string name;
           friend class Polyline;
           friend class FiniteDifference;
-          friend class BoundayCondition;           
+          friend class ConditionData;           
     };
    
 }
@@ -115,6 +116,7 @@ namespace _FDM
 extern vector<_FDM::Point*> points;
 extern vector<_FDM::Polyline*> polylines;
 extern void GeoRead(); 
+extern void GeoReleaseMemory(); 
 extern _FDM::Polyline *GetPolylineByName(string name); 
 extern _FDM::Point *GetPointByID(long ID); 
 extern void WriteGeoData(ostream &os = cout);

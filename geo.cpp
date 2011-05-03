@@ -22,8 +22,10 @@ namespace _FDM
    */
    void Point::Write(ostream &os)
    {
-      os<<index<<" "<< coordinates[0]<<" "<<coordinates[1]<<endl;      
+      os<<index<<" "<< coordinates[0]<<" "<<coordinates[1]<<"  0."<<endl;      
    }
+
+
    /*!
       \fn constructor of class Polyline
       
@@ -48,7 +50,13 @@ namespace _FDM
       }
          
    }
- 
+    
+   /// Destructor
+   Polyline::~Polyline()
+   {
+      points.clear();
+   }
+
    /*!
       \fn Point::Write(ostream &os)
         
@@ -222,5 +230,11 @@ void WriteGeoData(ostream &os)
    for(i=0; i<polylines.size(); i++)
       polylines[i]->Write(os);
 
+}
+
+void GeoReleaseMemory()
+{
+   DeleteVector(points);
+   DeleteVector(polylines);
 }
 
