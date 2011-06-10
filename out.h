@@ -14,6 +14,7 @@ using namespace std;
 namespace _FDM
 {
    class FiniteDifference;
+   class Geo_Entity;
 
    class Output
    {
@@ -29,7 +30,9 @@ namespace _FDM
 
          string fname;
          ofstream *os; 
-         /// class Geo_Root;  
+        
+         /// geomtry;
+         Geo_Entity *geo_entity;  
 
          friend class FiniteDifference;     
    };

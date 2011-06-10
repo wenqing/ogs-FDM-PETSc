@@ -9,6 +9,9 @@
 
 #include <vector>
 #include <sstream>
+#include <limits>
+
+#include "numerics.h"
 #include "geo.h"
 #include "misc.h"
 
@@ -34,7 +37,7 @@ namespace _FDM
       \fn constructor of class Polyline
       
    */
-   Polyline::Polyline(ifstream &ins, string ply_name): name(ply_name)
+   Polyline::Polyline(ifstream &ins, string ply_name): Geo_Entity(ply), name(ply_name)
    {
       long id; 
       string aline;
@@ -78,6 +81,8 @@ namespace _FDM
      \fn  PointInDomain(double x, double y)
 
      Determine whether a point is in the domain 
+
+     04.2011. WW
    */ 
    bool Polyline::PointInDomain(double x, double y)
    {
@@ -109,8 +114,32 @@ namespace _FDM
 
        return inside;  
    }
+   /*!
+     \fn real MinDisttanceTo_a_Point(Point *pnt);
 
-
+      Calculate the distance to a point 
+      
+      05.2011 WW   
+   */ 
+   real Polyline::MinDisttanceTo_a_Point(const Point *pnt)
+   {
+      int i, j;
+      real a[3], b[3], c[3], dist; 
+      real min_dist = DBL_MAX;
+      for(i=0; i<(int)points.size()-1; i++) 
+      {
+         for(j=0; j<3; j++) 
+         {
+            a[j] = pnt->coordinates[j];
+            b[j] = points[0]->coordinates[j];
+            c[j] = points[1]->coordinates[j];
+         }
+         dist = 2.0*ComputeDetTri(a,b,c)/points[0]->GetDistanceTo(points[1]);
+         if(dist<min_dist)
+           min_dist = dist;
+      }
+      return min_dist; 
+   } 
 }
 
 using namespace _FDM;
@@ -125,7 +154,7 @@ vector<_FDM::Polyline*> polylines;
 void GeoRead()
 {   
    long id; 
-   real xy[2];
+   float xy[2];
    string aline;
    std::stringstream ss;
      
@@ -138,10 +167,12 @@ void GeoRead()
       exit(1);
    } 
 
+   cout<<">> Read geometry data."<<endl;
    while(!ins.eof())
    {
       getline(ins, aline); 
-
+      if(CheckComment(aline))
+          continue;
       aline = string_To_lower(aline);
       if(aline.find("point")!=string::npos)  
       {   

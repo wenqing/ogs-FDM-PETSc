@@ -3,14 +3,15 @@
  By Wenqing Wang
  03.2011
  
- A simple explict FDM code for parabolic equations.
+ A simple explicit FDM code for parabolic equations.
  
  Feature:
  Arbitrary boundary
  Sparse matrix storage
  Iterative solve
- Fexible boundary condition definition.
+ Flexible boundary condition definition
+ human readable input
  
  Compilation:
- Use cmake to generate a project or makefile by command
+ Use Cmake to generate a project or makefile by command
  cmake [path to source code]

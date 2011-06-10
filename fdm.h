@@ -59,10 +59,10 @@ namespace _FDM
         long nrows;
         long ncols;
         /// Coodinates of the low left corner of the grid 
-        real xll0;
-        real yll0;        
+        float xll0;
+        float yll0;        
         /// Cell size
-        real cell_size; 
+        float cell_size; 
 
  
         /// Time step
@@ -85,6 +85,7 @@ namespace _FDM
         /// Boundary Condition
         vector<ConditionData*> BC_Neumann; 
         vector<ConditionData*> BC_Dirichlet; 
+        vector<ConditionData*> Source_Sink; 
         vector<long> BC_Dirichlet_points; 
         ConditionData *ic;
          
@@ -117,12 +118,13 @@ namespace _FDM
 
 
         /// Set Dirichlet boundary condition
-        inline bool CheckDirichletBC(Point *pnt);
-        inline void CheckNuemannBC(Point *pnt);
-        inline void SetBC_at_PointOnLine(long i, Point *pnt, NeighborPoint_Type nbt);
-        inline void SetBC_at_Point_atCCorner(long i, Point *pnt, NeighborPoint_Type nbt);
- 
-        inline void Output_Domain_VTK(ostream &os);
+        bool CheckDirichletBC(Point *pnt);
+        void CheckNuemannBC(Point *pnt);
+        void CheckSourceSink(Point *pnt);
+        void SetBC_at_PointOnLine(long i, Point *pnt, NeighborPoint_Type nbt);
+        void SetBC_at_Point_atCCorner(long i, Point *pnt, NeighborPoint_Type nbt);
+        
+        void Output_Domain_VTK(ostream &os);
 
         friend class ConditionData; 
         friend class Math_Group::SparseTable; 

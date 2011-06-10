@@ -7,6 +7,8 @@
 #include <sstream>
 #include "out.h"
 #include "misc.h"
+#include "geo.h"
+
 using namespace std;
 namespace _FDM
 {
@@ -14,13 +16,22 @@ namespace _FDM
    {
      string aline;
      std::stringstream ss;
+
+     int ID;
      float ti = 0.; 
      steps = -1;
      bool done = false; 
+     bool geo = false; 
+
+     geo_entity = NULL;
 
      for(;;)
      {
-        getline(ins, aline); 
+        getline(ins, aline);  
+
+        if(CheckComment(aline))
+           continue;
+
         if(aline.find("...")!=string::npos)
            break;
         aline = string_To_lower(aline);
@@ -32,16 +43,53 @@ namespace _FDM
            ss>>aline;
            ss.clear();
            aline = string_To_lower(aline);
+           geo = false; 
+
            if(aline.find("domain")!=string::npos)
            {
+              geo = true; 
               fname = file_name +"_domain";  
+           }
+           else if(aline.find("polyline")!=string::npos)
+           {
+              geo = true; 
+
+              ss.str(aline);
+              /// skip key
+              ss>>aline;
+              ss>>aline;  
+              ss.clear();
+              Polyline *ply = GetPolylineByName(aline);       
+
+              fname = file_name +"_ply" + ply->Name();
+              geo_entity = ply;  
+           }
+           else if(aline.find("point")!=string::npos)
+           {
+              geo = true; 
+              ss.str(aline);
+              /// skip key
+              ss>>aline;
+              /// point ID
+              ss>>ID; 
+              ss.clear();
+
+              geo_entity = GetPointByID(ID); 
+              ss<<ID; 
+              fname = file_name +"_point" + ss.str();
+              ss.clear();
+           }
+
+           if(geo)
+           {
               /// If Data of all steps can be dumped to a single file, use: 
               //      os = new ofstream(fname.c_str(), ios::trunc);
               os = new ofstream(); //(fname.c_str(), ios::trunc);
               os->clear();
               os->close();
               continue; 
-           }
+
+           }  
         } 
         if(aline.find("times")!=string::npos) 
         {

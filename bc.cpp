@@ -18,7 +18,8 @@ namespace _FDM
 {
    //--------------- class  ConditionData ---------------------
    ConditionData::ConditionData(ifstream &ins)
-   {
+   {        
+
      long ID = 0;
      string aline;
      std::stringstream ss;
@@ -28,6 +29,10 @@ namespace _FDM
      for(int i=0; i<2; i++)
      {
         getline(ins, aline); 
+        if(CheckComment(aline))
+          continue;
+
+
         aline = string_To_lower(aline);
         if(aline.find("geometry")!=string::npos) 
         {
@@ -74,7 +79,6 @@ namespace _FDM
    */
    Point* ConditionData::GetClosedPoint(const Point *pnt, const double tol)
    {
-      int k;
       Point *bc_pnt;
  
       real dist; 
@@ -83,17 +87,10 @@ namespace _FDM
 
       if(ply)
       {
-         for(k=0; k<(int)ply->points.size(); k++)
-         {
-            dist = ply->points[k]->GetDistanceTo(pnt);
-            if(dist<min_dist)
-            {
-               min_dist = dist;
-               bc_pnt = ply->points[k]; 
-            }
-         }
-              
+         min_dist = ply->MinDisttanceTo_a_Point(pnt);
+         bc_pnt = ply->points[0];
       }
+
       else if(point)
       {
          dist = point->GetDistanceTo(pnt);
@@ -129,8 +126,10 @@ namespace _FDM
        BC_Type pnt_bc_type;
        if(type_name.find("neumann")!=string::npos)
           pnt_bc_type = Neumann;  //Defaults
-       if(type_name.find("dirichlet")!=string::npos)
+       else if(type_name.find("dirichlet")!=string::npos)
           pnt_bc_type = Dirichlet;
+       else if(type_name.find("source")!=string::npos)
+          pnt_bc_type = Source_term;
       
        if(point)
           point->bc_type = pnt_bc_type;

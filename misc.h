@@ -5,6 +5,8 @@
 #include <vector>
 #include <fstream>
 #include <cctype>
+
+
 typedef  double real;
 
 using namespace std;
@@ -72,6 +74,12 @@ template<class num> void  DeleteVector(vector<num*> &a_vec)
    }
    
 }
+
+/// Check comment
+inline bool CheckComment(string& string_line);
+
+/// returns used heap size in bytes or negative if heap is corrupted.
+extern long HeapUsed();
 
 
 

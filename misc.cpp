@@ -5,6 +5,8 @@
 */
 #include <iostream>
 #include <sstream>
+#include <malloc.h>
+
 #include "misc.h"
  string string_To_lower(string strToConvert)
 {
@@ -47,6 +49,8 @@ void Read_Block(ifstream &ins, vector<string> &key, vector<float> & key_value)
  
         //position = ins.tellg();
         getline(ins, aline); 
+        if(CheckComment(aline))
+           continue;
         
         /* 
         if(aline.find("---")!=string::npos || aline.find("...")!=string::npos)
@@ -119,3 +123,39 @@ long binarySearch(long *arr, long target, long start, long end)
    return -1;
 }
 
+
+/// returns used heap size in bytes or negative if heap is corrupted.
+long HeapUsed()
+{
+    _HEAPINFO info = { 0, 0, 0 };
+    long used = 0;
+    int rc;
+
+    while ((rc=_heapwalk(&info)) == _HEAPOK)
+    {
+        if (info._useflag == _USEDENTRY)
+            used += (long)info._size;
+        }
+    if (rc != _HEAPEND && rc != _HEAPEMPTY)
+        used = (used?-used:-1);
+
+    return used;
+}
+
+/*!
+   \fn  inline bool CheckComment(string& string_line)
+
+   Check whether string_line is a comment or contains comment 
+
+   10.06.2011. WW 
+*/
+inline bool CheckComment(string& string_line)
+{
+   // The string is a comment
+   if(string_line.c_str()[0]=='#')
+       return true;
+
+   // The string contains comment. Remove the comment
+   string_line = string_line.substr(0, string_line.find("#"));  
+   return false;      
+}

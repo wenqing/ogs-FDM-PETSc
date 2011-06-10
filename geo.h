@@ -24,20 +24,31 @@ namespace _FDM
          
    */
    enum Point_Type {none, intern, border, nm_11, nm_12, nm_13, nm_14, nm_21, nm_22, nm_23, nm_24};
-   enum BC_Type{Neumann, Dirichlet};
+   enum BC_Type{Neumann, Dirichlet, Source_term};
    enum NeighborCell_Type {NE, NW, SE, SW};
    enum NeighborPoint_Type {C, E, N, W, S};
+   enum Geo_Type {point, ply};
   
-   /// class Geo_Root;
-   class Point
+   class Geo_Entity
    {
       public:
-        Point(long id, real x, real y) 
+        Geo_Entity(Geo_Type gtyp) { gtype = gtyp; }
+        ~Geo_Entity() {} 
+ 
+      private: 
+        Geo_Type gtype;
+   };
+   /// class Geo_Root;
+   class Point : public Geo_Entity 
+   {
+      public:
+        Point(long id, float x, float y): Geo_Entity(point) 
         {
            index = id;
-           coordinates = new real[2];
+           coordinates = new float[3];
            coordinates[0] = x;
            coordinates[1] = y;
+           coordinates[2] = 0.;
            point_type = none;
         }
         
@@ -46,11 +57,11 @@ namespace _FDM
            delete [] coordinates;            
         }  
 
-        real X() const {return coordinates[0];}
-        real Y() const {return coordinates[1];}
+        float X() const {return coordinates[0];}
+        float Y() const {return coordinates[1];}
         real GetDistanceTo(const Point *a_p)
            {
-              real *a_coord = a_p->coordinates; 
+              float *a_coord = a_p->coordinates; 
               return sqrt((coordinates[0]-a_coord[0])
                         *(coordinates[0]-a_coord[0])
                       +  (coordinates[1]-a_coord[1])
@@ -69,7 +80,7 @@ namespace _FDM
         long grid_i;
         long grid_j;
 
-        real *coordinates; 
+        float *coordinates; 
         /// Save Dirichlet or Neumann value here
         real value;
         Point_Type point_type;
@@ -91,7 +102,7 @@ namespace _FDM
           
       Define a polyine that consists of points
    */
-    class Polyline
+    class Polyline: public Geo_Entity 
     {
         public:
           Polyline(ifstream &ins, string ply_name);
@@ -102,6 +113,7 @@ namespace _FDM
         void Write(ostream &os = cout);
         
         bool PointInDomain(double x, double y);
+        real MinDisttanceTo_a_Point(const Point *pnt);
 
         private:
           vector<Point*> points;

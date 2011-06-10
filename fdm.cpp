@@ -59,6 +59,8 @@ namespace _FDM
 
       string aline;
       mat = NULL;
+      
+      cout<<">> Read FDM data."<<endl;
       while(!ins.eof())
       {
          getline(ins, aline);
@@ -66,7 +68,7 @@ namespace _FDM
          //if(aline.find("...")!=string::npos)
          //   break;
 
-         if(aline.find("#")!=string::npos)
+         if(CheckComment(aline))
            continue;
 
          aline = string_To_lower(aline);
@@ -130,6 +132,11 @@ namespace _FDM
                tim_fac=31536000;
                time_unit = "year";                
             }
+            else 
+            {  
+               tim_fac=1;
+               time_unit = "second";                
+            }
 
             key.resize(3);
             keyval.resize(3);
@@ -165,6 +172,12 @@ namespace _FDM
             BC_Dirichlet.push_back(new ConditionData(ins));
             BC_Dirichlet[BC_Dirichlet.size()-1]->SetGeoEntityType("dirichlet");
          }
+         if(aline.find("source")!=string::npos||aline.find("sink")!=string::npos)
+         {
+            Source_Sink.push_back(new ConditionData(ins));
+            Source_Sink[Source_Sink.size()-1]->SetGeoEntityType("source");
+         }
+
          if(aline.find("raster")!=string::npos)
             rrecharge = new Raster_Recharge();
                   
@@ -174,7 +187,7 @@ namespace _FDM
       }
   
      
-
+      cout<<">> Build grid data."<<endl;
       CaterogorizeGridPoint();
 
       /// Generate a linear solver
@@ -194,7 +207,7 @@ namespace _FDM
          u0[i] = u1[i] = ic->value;
       }
 
-
+      cout<<">> Write grid."<<endl;
       WriteGrid_VTK();
      
    }
@@ -407,7 +420,7 @@ namespace _FDM
     {
         int k, l;
         long i, j;
-        double x0, x1, y0, y1;
+        float x0, x1, y0, y1;
 
         /// Sort neighbor point index
         long idx_buff[5], buff1, buff0;
@@ -669,6 +682,8 @@ namespace _FDM
                    CheckNuemannBC(pnt); 
               }
              
+              /// Check whether this point is assigned with the source/sink term
+              CheckSourceSink(pnt);
            }
         }
 
@@ -678,14 +693,14 @@ namespace _FDM
        \fn inline bool CheckDirichletBC(Point *pnt)
        
        Determine whether a grid point on the boundary is
-       a point assigned with the Dirichlet boundary by geometry
+       assigned with the Dirichlet boundary by geometry
        entity, which mush be with threhold of the grid size. 
  
        04.2011. WW 
        
     */ 
 
-    inline bool FiniteDifference::CheckDirichletBC(Point *pnt)
+    bool FiniteDifference::CheckDirichletBC(Point *pnt)
     {
         int i;
         Point *bc_pnt;
@@ -717,14 +732,14 @@ namespace _FDM
        \fn inline void CheckNeumannBC(Point *pnt)
        
        Determine whether a grid point on the boundary is
-       a point assigned with the Neumann boundary by geometry
+       assigned with the Neumann boundary by geometry
        entity, which mush be with threhold of the grid size. 
  
        04.2011. WW 
        
     */ 
 
-    inline void FiniteDifference::CheckNuemannBC(Point *pnt)
+    void FiniteDifference::CheckNuemannBC(Point *pnt)
     {
         int i;
         Point *bc_pnt;
@@ -741,6 +756,38 @@ namespace _FDM
           return;
 
         pnt->bc_type = Neumann;
+        pnt->value = bc_pnt->value;
+         
+    }
+    //---------------------------------
+    /*!
+       \fn inline void CheckSourceSink(Point *pnt)
+       
+       Determine whether a grid point is
+       assigned with the source/sink term by geometry
+       entity, which mush be with threhold of the grid size. 
+ 
+       04.2011. WW 
+       
+    */ 
+
+    void FiniteDifference::CheckSourceSink(Point *pnt)
+    {
+        int i;
+        Point *bc_pnt;
+        bc_pnt = NULL;
+
+        for(i=0; i<(int)Source_Sink.size(); i++)
+        {
+           bc_pnt = Source_Sink[i]->GetClosedPoint(pnt, cell_size);
+           if(bc_pnt)
+             bc_pnt->value = Source_Sink[i]->value;
+        }
+         
+        if(!bc_pnt)
+          return;
+
+        pnt->bc_type = Source_term;
         pnt->value = bc_pnt->value;
          
     }
@@ -767,6 +814,10 @@ namespace _FDM
        istep = 0;
        while(current_time<=T1)
        {
+          cout<<"\n>> Time step ("<<time_unit<<") "<<istep
+              <<": Current time "<<current_time
+              <<"|| Step size "<<dt <<endl;
+
           if(rrecharge)
           {
              real *rhs = eqs->b;
@@ -778,6 +829,8 @@ namespace _FDM
              }
           }
           
+          cout<<"\t>> Build linear equation.";
+
           AssembleEQS();
           eqs->Solver();
           
@@ -828,6 +881,11 @@ namespace _FDM
       for(i=0; i<size; i++)
       {
          pnt = grid_point_in_use[i];
+
+         /// Source/sink
+         if(pnt->bc_type == Source_term)
+            b[i] += pnt->value;
+
          if(pnt->point_type == intern||pnt->point_type == border)
          {
             for(k=0; k<(int)pnt->neighbor_points.size(); k++)
@@ -912,7 +970,7 @@ namespace _FDM
        04.2011 WW
        
    */
-   inline void FiniteDifference::SetBC_at_PointOnLine(long i, Point *pnt, NeighborPoint_Type nbt)
+   void FiniteDifference::SetBC_at_PointOnLine(long i, Point *pnt, NeighborPoint_Type nbt)
    {
       int k;
       CSparseMatrix *A = eqs->A;
@@ -966,7 +1024,7 @@ namespace _FDM
        04.2011 WW
        
    */
-   inline void FiniteDifference::SetBC_at_Point_atCCorner(long i, Point *pnt, NeighborPoint_Type nbt)
+   void FiniteDifference::SetBC_at_Point_atCCorner(long i, Point *pnt, NeighborPoint_Type nbt)
    {
       int k;
       CSparseMatrix *A = eqs->A;
@@ -1070,7 +1128,8 @@ namespace _FDM
 
            if(doit)
            {
-              
+            
+              cout<<">> Output results in domain."<<endl;              
               a_out->os->clear();
               a_out->os->open(n_fname.c_str(), ios::trunc);
               if(a_out->os->good())
@@ -1083,7 +1142,7 @@ namespace _FDM
     }
 
 //------------------------------------------------------
-    inline void FiniteDifference::Output_Domain_VTK(ostream &os) 
+    void FiniteDifference::Output_Domain_VTK(ostream &os) 
     {
        long i, j, k;
        long size = (long)grid_point_in_use.size();
