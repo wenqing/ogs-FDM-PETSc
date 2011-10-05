@@ -4,8 +4,8 @@
 
    05.2011 WW
 */
-#ifndef out_INC
-#define out_INC
+#ifndef Output_INC
+#define Output_INC
 #include<iostream>
 #include<fstream>
 

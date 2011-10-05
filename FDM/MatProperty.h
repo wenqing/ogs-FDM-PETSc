@@ -1,5 +1,5 @@
-#ifndef mat_INC
-#define mat_INC
+#ifndef Mat_Property_INC
+#define Mat_Property_INC
 #include<iostream>
 #include<fstream>
 

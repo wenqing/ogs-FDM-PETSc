@@ -5,9 +5,12 @@
 
     WW. 03.2011  
 */
+
+#include "MatProperty.h"
+
 #include <vector>
 #include <sstream>
-#include "mat.h"
+
 #include "misc.h"
 /*!
    \class class _material

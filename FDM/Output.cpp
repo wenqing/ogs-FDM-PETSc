@@ -4,10 +4,14 @@
 
    05.2011 WW
 */
+
+#include "Output.h"
+
 #include <sstream>
-#include "out.h"
+
 #include "misc.h"
-#include "geo.h"
+#include "Point.h"
+#include "Polyline.h"
 
 using namespace std;
 namespace _FDM
