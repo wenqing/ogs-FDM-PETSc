@@ -3,14 +3,16 @@
   
    04.2011. WW
 */
+
+#include "Numerics.h"
+
+
 #include <iomanip>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <vector>
 #include <cmath>
-
-#include "numerics.h"
 
 using namespace std;
 namespace _FDM
