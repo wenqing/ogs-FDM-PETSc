@@ -1,9 +1,9 @@
 /*!
-\file Definition of class Raster_Recharge
+\file Definition of class RasterRecharge
 */
 
 
-#include "raster_recharge.h"
+#include "RasterRecharge.h"
 
 
 #include <iostream>
@@ -14,7 +14,7 @@
 #include "misc.h"
 
 /// Constrcutor
-Raster_Recharge::Raster_Recharge()
+RasterRecharge::RasterRecharge()
 {
   string aline;
   double step;
@@ -58,7 +58,7 @@ Raster_Recharge::Raster_Recharge()
 }
 
 //--------------------------------------------------------------------------------------------------
-void Raster_Recharge::Read_Raster(const double current_time)
+void RasterRecharge::Read_Raster(const double current_time)
 {
   int i, k, size; 
   double tim_0, tim_1; 
@@ -135,7 +135,7 @@ void Raster_Recharge::Read_Raster(const double current_time)
 }
 
 
-double Raster_Recharge::Assign_Grid_Point(const double x, const double y)
+double RasterRecharge::Assign_Grid_Point(const double x, const double y)
 {
    long nx, ny;
    double val;

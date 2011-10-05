@@ -26,7 +26,7 @@
 #include "equation_class.h"
 #include "out.h"
 
-#include "raster_recharge.h"
+#include "RasterRecharge.h"
 
 using namespace std;
 using namespace Math_Group;
@@ -181,7 +181,7 @@ namespace _FDM
          }
 
          if(aline.find("raster")!=string::npos)
-            rrecharge = new Raster_Recharge();
+            rrecharge = new RasterRecharge();
                   
          if(aline.find("output")!=string::npos)
             outp.push_back(new Output(ins));
