@@ -5,7 +5,7 @@ Programing:
 **************************************************************************/
 
 //#include"matrix_class.h"
-#include"equation_class.h"
+#include"LinearEQS.h"
 
 //
 #include <iostream>
@@ -30,7 +30,7 @@ Linear_EQS::Linear_EQS(const SparseTable &sparse_table,
                        pivots(NULL), z_vec(NULL), message(messg)
 {
   long i, size;
-  A = new CSparseMatrix(sparse_table, dof);
+  A = new SparseMatrix(sparse_table, dof);
   size = A->Dim();
   size_global = 0;
 

@@ -1,5 +1,5 @@
-#ifndef fdm_INC
-#define fdm_INC
+#ifndef FiniteDifference_INC
+#define FiniteDifference_INC
 
 #include<iostream>
 
@@ -17,7 +17,7 @@
 */
 namespace Math_Group {class Linear_EQS; class SparseTable;}
 
-class Raster_Recharge;
+class RasterRecharge;
 namespace _FDM
 {
    class Mat_Property;
@@ -34,9 +34,10 @@ namespace _FDM
    class FiniteDifference 
    {
       public:
-        FiniteDifference();
+		  FiniteDifference() {}
         ~FiniteDifference();   
 
+        void Initialize();
         void TimeSteping(); 
         void AssembleEQS(); 
 
@@ -90,7 +91,7 @@ namespace _FDM
         ConditionData *ic;
          
         /// Source term
-        Raster_Recharge *rrecharge;
+        RasterRecharge *rrecharge;
 
         
         /// Output

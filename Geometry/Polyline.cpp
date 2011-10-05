@@ -1,11 +1,13 @@
 /*!
-  \file geo.cpp
+  \file Polyline.cpp
 
-   Definition of member fucntions of class Point and Polyline, and the function 
+   Definition of member fucntions of class Polyline, and the function 
    used to read geometrical data
 
    14.04.2011. WW   
 */
+
+#include "Polyline.h"
 
 #include <vector>
 #include <sstream>
@@ -13,26 +15,14 @@
 #include <cfloat>
 
 #include "numerics.h"
-#include "geo.h"
 #include "misc.h"
+
+#include "Point.h"
+#include "GeoEntity.h"
 
 
 namespace _FDM
 {
-   /*!
-      \fn Point::Write(ostream &os)
-        
-       output the coordinate of a point
-   */
-   void Point::Write(ostream &os)
-   {
-      os<<index<<" "<< coordinates[0]<<" "<<coordinates[1]<<"  0."<<endl;      
-   }
-   void Point::Write_VTK(ostream &os)
-   {
-      os<< coordinates[0]<<" "<<coordinates[1]<<"  0."<<endl;      
-   }
-
 
    /*!
       \fn constructor of class Polyline

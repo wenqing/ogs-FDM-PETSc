@@ -8,7 +8,7 @@
 
 */
 
-#include "fdm.h"
+#include "FiniteDifference.h"
 
 #include <iomanip>
 #include <iostream>
@@ -34,7 +34,7 @@ namespace _FDM
 {
 //--------------- class  FiniteDifference ---------------------
    /// Constructor 
-   FiniteDifference:: FiniteDifference()
+   void FiniteDifference:: Initialize()
    {
       vector<string> key;
       vector<float> keyval;
@@ -864,7 +864,7 @@ namespace _FDM
       real mat_m;
       real mat_l;
 
-      CSparseMatrix *A = eqs->A;
+      SparseMatrix *A = eqs->A;
       real *b = eqs->b; 
       real *x = eqs->x; 
       
@@ -977,7 +977,7 @@ namespace _FDM
    void FiniteDifference::SetBC_at_PointOnLine(long i, Point *pnt, NeighborPoint_Type nbt)
    {
       int k;
-      CSparseMatrix *A = eqs->A;
+      SparseMatrix *A = eqs->A;
       real *b = eqs->b; 
       real e_val;
       
@@ -1032,7 +1032,7 @@ namespace _FDM
   void FiniteDifference::SetBC_at_Point_atCCorner(long i, Point *pnt)
   {
       int k;
-      CSparseMatrix *A = eqs->A;
+      SparseMatrix *A = eqs->A;
       real *b = eqs->b; 
       real e_val;
       

@@ -4,8 +4,8 @@ Task: Sparse matrix and linear equation solver
 Programing:
 10/2007 WW/
 **************************************************************************/
-#ifndef eqs_class_INC
-#define eqs_class_INC
+#ifndef Linear_EQS_INC
+#define Linear_EQS_INC
 #include<vector>
 #include<cmath>
 //
@@ -75,8 +75,8 @@ class Linear_EQS
     void Write(ostream &os=cout);    
     void Write_BIN(ostream &os);    
   private:
-    CSparseMatrix *A;
-    CSparseMatrix *M;  // Preconditioner;
+    SparseMatrix *A;
+    SparseMatrix *M;  // Preconditioner;
     double *b;
     double *x;
     double *pivots;  // For ILU preconditioner. _new by WW 08.10.2008

@@ -5,18 +5,18 @@
     the recharge data. Each raster file contains the rechange   
     03.2011. WW
 */
-#ifndef Raster_Recharge_H
-#define Raster_Recharge_H 
+#ifndef RasterRecharge_H
+#define RasterRecharge_H 
 
 #include<vector>
 #include<iostream>
 #include<string>
 using namespace std;
-class Raster_Recharge
+class RasterRecharge
 {
    public:
-    Raster_Recharge();
-    ~Raster_Recharge()
+    RasterRecharge();
+    ~RasterRecharge()
      {
         delete [] GIS_shape_head;
         if(recharge_cell_value)

@@ -1,7 +1,7 @@
 /*!
   \file geo.h
    
-   Declaration of class Point and Polyline, which are used
+   Declaration of class Point, which is used
    to assign  boundary conditions
    
    13.04.2011. WW
@@ -19,25 +19,10 @@ namespace _FDM
    
    class FiniteDifference;
    class ConditionData; 
-   /*!
-     \class  Point
-         
-   */
-   enum Point_Type {none, intern, border, nm_11, nm_12, nm_13, nm_14, nm_21, nm_22, nm_23, nm_24};
-   enum BC_Type{Neumann, Dirichlet, Source_term};
-   enum NeighborCell_Type {NE, NW, SE, SW};
-   enum NeighborPoint_Type {C, E, N, W, S};
-   enum Geo_Type {point, ply};
-  
-   class Geo_Entity
-   {
-      public:
-        Geo_Entity(Geo_Type gtyp) { gtype = gtyp; }
-        ~Geo_Entity() {} 
- 
-      private: 
-        Geo_Type gtype;
-   };
+
+   class Geo_Entity;
+   class Polyline;
+
    /// class Geo_Root;
    class Point : public Geo_Entity 
    {
@@ -97,41 +82,8 @@ namespace _FDM
 
    };
 
-   /*!
-      \class Polyline
-          
-      Define a polyine that consists of points
-   */
-    class Polyline: public Geo_Entity 
-    {
-        public:
-          Polyline(ifstream &ins, string ply_name);
-          ~Polyline();
-
-        string Name() const {return name;}
-
-        void Write(ostream &os = cout);
-        
-        bool PointInDomain(double x, double y);
-        real MinDisttanceTo_a_Point(const Point *pnt);
-
-        private:
-          vector<Point*> points;
-          string name;
-          friend class FiniteDifference;
-          friend class ConditionData;           
-    };
-   
 }
 
-/// Contains all points of the domain
-extern vector<_FDM::Point*> points;
-extern vector<_FDM::Polyline*> polylines;
-extern void GeoRead(); 
-extern void GeoReleaseMemory(); 
-extern _FDM::Polyline *GetPolylineByName(string name); 
-extern _FDM::Point *GetPointByID(long ID); 
-extern void WriteGeoData(ostream &os = cout);
 
 
 

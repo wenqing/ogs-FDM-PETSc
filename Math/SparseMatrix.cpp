@@ -1,451 +1,23 @@
 /*========================================================================
  GeoSys - class Matrix (Definition)
           class vec  
- Task:       Matrix object for full matrices.  If the size of matrix is
-             small, this class can do efficient matrix operation. 
+ Task:       Sparse matrix definition. 
  Function:   See the definition below
  programming:
   22/08/2004  WW  
 ==========================================================================*/
 
 /// Matrix
+#include "SparseMatrix.h"
 #include <iomanip>
 #include <float.h>
 #include <cmath>
 //
-#include "matrix_class.h"
 
-///PDE related classes:
-#include "fdm.h"
-#include "geo.h"
-
+#include "SparseTable.h"
 
 namespace Math_Group{
 
-////PDE related class:
-//using _FDM::Point;
-
-// Constructors
-Matrix::Matrix(const int rows, const int cols)
-{    
-  if(rows*cols>0)
-  {
-    Sym = false;
-    nrows = rows;
-    ncols = cols;
-    nrows0 = rows;
-    ncols0 = ncols;
-    size = nrows*ncols;
-    data = new double[size];
-    for(int i=0; i<size; i++) data[i] = 0.0;
-  }
-}
-Matrix::Matrix()
-{
-   Sym = false;
-   nrows = 0;
-   ncols = 0;
-   nrows0 = 0;
-   ncols0 = 0;
-   size = 0;
-   data = 0;
-}
-Matrix::Matrix(const Matrix& m)
-{
-   Sym = m.Sym;
-   nrows = m.nrows;
-   ncols = m.ncols;
-   nrows0 = m.nrows0;
-   ncols0 = m.ncols0;
-   size = m.size;
-   data = new double[size];
-   for(int i=0; i<size; i++) data[i] = 0.0;
-}
-
-void Matrix::resize(const int rows, const int cols)
-{
- 
-   if(size>0) { 
-      delete [] data;
-      data = NULL;
-   }
-     
-   if(rows*cols>0)
-   {
-      Sym = false;
-      nrows = rows;
-      ncols = cols;
-      nrows0 = rows;
-      ncols0 = ncols;
-      size = nrows*ncols;
-      data = new double[size];
-      for(int i=0; i<size; i++) data[i] = 0.0;
-   }
-}
-
-Matrix::~Matrix()
-{
-    delete [] data;
-    data = NULL;
-}
-// 06.2010. WW
-void Matrix::ReleaseMemory()
-{
-    delete [] data;
-    data = NULL;
-}
-
-//----------------------------------------------
-#ifdef OverLoadNEW_DELETE
-void* Matrix::operator new(size_t sz) {
-  //printf("operator new: %d Bytes\n", sz);
-  void* m = malloc(sz);
-  if(!m) puts("out of memory");
-  return m;
-}
-
-void Matrix::operator delete(void* m) {
-
-  Matrix* mm = static_cast<Matrix*>(m); 
-  free(mm); 
-}
-#endif
-//----------------------------------------------
-//
-void Matrix::operator = (const double a)
-{
-    for(int i=0; i<size; i++) data[i] = a;
-}
-void Matrix::operator *= (const double a)
-{
-    for(int i=0; i<size; i++) data[i] *= a;
-}
-void Matrix::operator += (const double a)
-{
-    for(int i=0; i<size; i++) data[i] += a;
-}
-//
-void Matrix::operator = (const Matrix& m)
-{
-#ifdef gDEBUG    
-    if(nrows!=m.Rows()||ncols!=m.Cols())
-    {
-        cout<<"\n The sizes of the two matrices are not matched"<<endl;
-        abort();
-    }
-#endif
-    for(int i=0; i<nrows; i++) 
-      for(int j=0; j<ncols; j++) 
-         data[i*ncols+j] = m(i,j);
-}
-
-//
-void Matrix::operator += (const Matrix& m)
-{
-#ifdef gDEBUG    
-   if(nrows!=m.Rows()||ncols!=m.Cols())
-    {
-        cout<<"\n The sizes of the two matrices are not matched"<<endl;
-        abort();
-    }
-#endif
-    for(int i=0; i<nrows; i++) 
-      for(int j=0; j<ncols; j++) 
-         data[i*ncols+j] += m(i,j);
-}
-
-//
-void Matrix::operator -= (const Matrix& m)
-{
-#ifdef gDEBUG    
-    if(nrows!=m.Rows()||ncols!=m.Cols()) //Assertion, will be removed
-    {
-        cout<<"\n The sizes of the two matrices are not matched"<<endl;
-        abort();
-    }
-#endif
-    for(int i=0; i<nrows; i++) 
-      for(int j=0; j<ncols; j++) 
-         data[i*ncols+j] -= m(i,j);
-}
-//
-void Matrix::GetTranspose(Matrix& m)
-{
- #ifdef gDEBUG    
-    if(ncols!=m.Rows()&&nrows!=m.Cols())
-    {
-        cout<<"\n The sizes of the two matrices are not matched"<<endl;
-        abort();
-    }
- #endif
-
-   for(int i=0; i<m.Rows(); i++)
-       for(int j=0; j<m.Cols(); j++)
-       {
-//          m(i,j) = data[j*ncols+i];
-           m(i,j) = (*this)(j,i);
-       }
-
-}
-//
-// m_results = this*m. m_results must be initialized
-void Matrix::multi(const Matrix& m, Matrix& m_result, const double fac)
-{
- #ifdef gDEBUG    
-    if(ncols!=m.Rows()&&nrows!=m_result.Rows()&&m.Cols()!=m_result.Cols())
-    {
-        cout<<"\n The sizes of the two matrices are not matched"<<endl;
-        abort();
-    }
- #endif
-    for(int i=0; i<m_result.Rows(); i++) 
-    {
-       for(int j=0; j<m_result.Cols(); j++) 
-       { 
-           if(Sym&&(j>i)) continue;
-           // m_result(i,j) = 0.0;
-           for(int k=0; k<ncols; k++)
-//            m_result(i,j) += fac*data[i*ncols+k]*m(k,j);
-              m_result(i,j) += fac*(*this)(i,k)*m(k,j);
-           
-       }
-    }
-}
-
-//
-// m_results = this*m1*m2. m_results must be  initialized
-void Matrix::multi(const Matrix& m1, const Matrix& m2, Matrix& m_result)
-{
-  #ifdef gDEBUG    
-    if(ncols!=m1.Rows()&&m1.Cols()!=m2.Rows()
-       &&m2.Cols()!=m_result.Cols()&&nrows!=m_result.Rows())
-    {
-        cout<<"\n The sizes of the two matrices are not matched"<<endl;
-        abort();
-    }
- #endif
-    for(int i=0; i<m_result.Rows(); i++) 
-    {
-       for(int j=0; j<m_result.Cols(); j++) 
-       { 
-           if(Sym&&(j>i)) continue;
-           //m_result(i,j) = 0.0;
-           for(int k=0; k<ncols; k++)
-           {
-              for(int l=0; l<m2.Rows(); l++) 
-//                m_result(i,j) += data[i*ncols+k]*m1(k,l)*m2(l,j);
-                m_result(i,j) += (*this)(i,k)*m1(k,l)*m2(l,j);
-           }
-       }
-    }
-}
-// vec_result = This*vec. vec_result must be  initialized
-void Matrix::multi(const double *vec, double *vec_result, const double fac)
-{
-    for(int i=0; i<nrows; i++)
-	{
-       for(int j=0; j<ncols; j++)
-//         vec_result[i] += fac*data[i*ncols+j]*vec[j];
-         vec_result[i] += fac*(*this)(i,j)*vec[j];
-    }
-}
-
-double& Matrix::operator() (const int i, const int j) const
-{
- #ifdef gDEBUG    
-    if(i>=nrows||j>=ncols)
-    {
-        cout<<"\n Index exceeds the size of the matrix"<<endl;
-        abort();
-    }
- #endif
-    return data[i*ncols+j]; 
-} 
-void  Matrix::LimitSize(const int nRows, const int nCols)
-{
- #ifdef gDEBUG    
-    if(nRows>nrows0||nCols>ncols0)
-    {
-        cout<<"\n Given size exceeds the original size of the matrix"<<endl;
-        abort();
-    }
- #endif
-    nrows = nRows;
-	ncols = nCols;
-    size = nrows*ncols;
-}
-
-
-/**************************************************************************
-MathLib-Method: 
-Task: 
-Programing:
-08/2004 WW Implementation
-02/2005 WW Change name
-**************************************************************************/
-void Matrix::Write(ostream& os)
-{
-    //os<<"============================================="<<endl;
-    //os<<"Rows: "<<Rows()<<"  Columns: "<<Cols()<<endl;
- 
-    os.setf(ios::scientific,ios::floatfield);
-    os.precision(12);
-
-    for(int i=0; i<nrows; i++)
-    {
-       os<< "| ";
-       for(int j=0; j<ncols; j++)
-         os<<(*this)(i,j)<<" ";
-       os<< "| "<<endl;
-    }
-    os<<endl;
-    //os<<"============================================="<<endl;
-    //os<<endl;     
-}
-
-/**************************************************************************
-MathLib-Method: 
-Task: 
-Programing:
-01/2006 WW Implementation
-**************************************************************************/
-void Matrix::Write_BIN(fstream& os)
-{
-    for(int i=0; i<size; i++) 
-      os.write((char*)(&data[i]), sizeof(data[i]));
-}
-/**************************************************************************
-MathLib-Method: 
-Task: 
-Programing:
-01/2006 WW Implementation
-**************************************************************************/
-void Matrix::Read_BIN(fstream& is)
-{
-    for(int i=0; i<size; i++) 
-      is.read((char*)(&data[i]), sizeof(data[i]));
-}
-
-
-/*\!
-********************************************************************
-   Create sparse matrix table
-   01/2006 WW
-   08/2007 WW
-   10/2007 WW
-   03/2010 WW: CRS storage
-********************************************************************
-*/
-SparseTable::SparseTable(FiniteDifference *fdm)
-{
-  
-   long i=0, j=0;
-   long **larraybuffer;
-   larraybuffer = NULL;
-   storage_type = CRS;
-   symmetry = false;  
- 
-   //
-   rows = (long)fdm->grid_point_in_use.size();
-
-   size_entry_column = 0;
-   diag_entry = new long[rows]; 
-
-   row_index_mapping_n2o = NULL; 
-   row_index_mapping_o2n = NULL;
- 
-   
-   /// CRS storage
-   /// num_column_entries saves vector ptr of CRS 
-   num_column_entries = new long[rows+1];
-
-   vector<long> A_index;
-   long col_index;
-
-   for(i=0; i<rows; i++)
-   {
-      num_column_entries[i] = (long)A_index.size();
- 
-      for(j=0; j<fdm->grid_point_in_use[i]->GetNumNeighborPoints(); j++)
-      {
-         col_index = fdm->grid_point_in_use[i]->GetNeighborIndex(j);
-                        
-         if(i == col_index)
-            diag_entry[i] = (long)A_index.size();
-         A_index.push_back(col_index);
-      }
-   }
-      
-   size_entry_column = (long)A_index.size(); 
-   num_column_entries[rows] = size_entry_column;
-
-   entry_column = new long[size_entry_column]; 
-   for(i=0; i<size_entry_column; i++)
-      entry_column[i] = A_index[i];
-
-}
-/*\!
-********************************************************************
-   Create sparse matrix table
-   08/2007 WW
-   10/2007 WW
-********************************************************************/
-void SparseTable::Write(ostream &os)
-{
-   long i, k, counter=0;
-
-   os.width(10);
-   os<<"Symmetry: "<<symmetry<<endl;
-   os<<"\n*** Row index  "<<endl;
- 
-   if(storage_type == CRS)
-   {
-      os<<"\n*** Sparse entry  "<<endl;
-      for (i = 0; i < rows; i++)
-      {
-          for (k = num_column_entries[i]; k < num_column_entries[i+1]; k++)
-             os<<entry_column[k]+1<<" ";
-          os<<endl; 
-      }
-   } 
-   else if(storage_type == JDS)
-   {
-      for (i = 0; i < rows; i++)
-        os<<row_index_mapping_n2o[i]+1<<endl;
-      // 
-      os<<"\n*** Sparse entry  "<<endl;
-      for (k = 0; k < max_columns; k++)
-      {
-         os<<"--Column: "<<k+1<<endl;
-         for (i = 0; i < num_column_entries[k]; i++)
-         {          
-            os<<entry_column[counter]+1<<endl;;
-            counter++;
-         } 
-         os<<endl;        
-      } 
-   } 
-}    
-
-/*\!
-********************************************************************
-   Create sparse matrix table
-   08/2007 WW
-   10/2007 WW
-********************************************************************/
-SparseTable::~SparseTable()
-{
-  if(entry_column) delete [] entry_column;
-  if(num_column_entries) delete [] num_column_entries; 
-  if(row_index_mapping_n2o) delete [] row_index_mapping_n2o;    
-  if(row_index_mapping_o2n) delete [] row_index_mapping_o2n;    
-  if(diag_entry) delete [] diag_entry;
-  entry_column = NULL;
-  num_column_entries = NULL; 
-  row_index_mapping_n2o = NULL;    
-  row_index_mapping_o2n = NULL;    
-  diag_entry = NULL;
-}
 /*\!
 ********************************************************************
    Constructor of sparse matrix
@@ -455,7 +27,7 @@ SparseTable::~SparseTable()
    08/2007 WW
    10/2007 WW
 ********************************************************************/
-CSparseMatrix::CSparseMatrix(const SparseTable &sparse_table, const int dof):DOF(dof)
+SparseMatrix::SparseMatrix(const SparseTable &sparse_table, const int dof):DOF(dof)
 {
   symmetry = sparse_table.symmetry;
   size_entry_column = sparse_table.size_entry_column;
@@ -483,7 +55,7 @@ CSparseMatrix::CSparseMatrix(const SparseTable &sparse_table, const int dof):DOF
       dof:  Degree of freedom given by PDE        
    03/2008 WW
 ********************************************************************/
-CSparseMatrix::CSparseMatrix(const CSparseMatrix& m)
+SparseMatrix::SparseMatrix(const SparseMatrix& m)
 {
 
   symmetry = m.symmetry;
@@ -516,7 +88,7 @@ CSparseMatrix::CSparseMatrix(const CSparseMatrix& m)
    10/2007 WW
    03/2011 WW 
 ********************************************************************/
-CSparseMatrix::~CSparseMatrix()
+SparseMatrix::~SparseMatrix()
 {
   delete [] entry;
   entry = NULL;
@@ -527,7 +99,7 @@ CSparseMatrix::~CSparseMatrix()
    08/2007 WW
    10/2008 WW
 ********************************************************************/
-double& CSparseMatrix::operator() (const long i, const long j) const
+double& SparseMatrix::operator() (const long i, const long j) const
 {
  #ifdef gDEBUG    
   if(i>=rows*DOF||j>=rows*DOF)
@@ -593,7 +165,7 @@ double& CSparseMatrix::operator() (const long i, const long j) const
    08/2007 WW
    10/2007 WW
 ********************************************************************/
-void CSparseMatrix::operator = (const double a)
+void SparseMatrix::operator = (const double a)
 {
    long size = DOF*DOF*size_entry_column;
    for(long i=0; i<size; i++)
@@ -605,7 +177,7 @@ void CSparseMatrix::operator = (const double a)
    08/2007 WW
    10/2007 WW
 ********************************************************************/
-void CSparseMatrix::operator *= (const double a)
+void SparseMatrix::operator *= (const double a)
 {
    long size = DOF*DOF*size_entry_column;
    for(long i=0; i<size; i++)
@@ -617,7 +189,7 @@ void CSparseMatrix::operator *= (const double a)
    08/2007 WW
    10/2007 WW
 ********************************************************************/
-void CSparseMatrix::operator += (const double a)
+void SparseMatrix::operator += (const double a)
 {
    long size = DOF*DOF*size_entry_column;
    for(long i=0; i<size; i++)
@@ -629,7 +201,7 @@ void CSparseMatrix::operator += (const double a)
    08/2007 WW
    10/2007 WW
 ********************************************************************/
-void CSparseMatrix::operator = (const CSparseMatrix& m)
+void SparseMatrix::operator = (const SparseMatrix& m)
 {
    long size = DOF*DOF*size_entry_column;
  #ifdef gDEBUG    
@@ -648,7 +220,7 @@ void CSparseMatrix::operator = (const CSparseMatrix& m)
    08/2007 WW
    10/2007 WW
 ********************************************************************/
-void CSparseMatrix::operator += (const CSparseMatrix& m)
+void SparseMatrix::operator += (const SparseMatrix& m)
 {
    long size = DOF*DOF*size_entry_column;
  #ifdef gDEBUG    
@@ -667,7 +239,7 @@ void CSparseMatrix::operator += (const CSparseMatrix& m)
    08/2007 WW
    10/2007 WW
 ********************************************************************/
-void CSparseMatrix::operator -= (const CSparseMatrix& m)
+void SparseMatrix::operator -= (const SparseMatrix& m)
 {
    long size = DOF*DOF*size_entry_column;
  #ifdef gDEBUG    
@@ -687,7 +259,7 @@ void CSparseMatrix::operator -= (const CSparseMatrix& m)
    10/2007 WW
    03/2011 WW  CRS
 ********************************************************************/
-void CSparseMatrix::Write(ostream &os)
+void SparseMatrix::Write(ostream &os)
 {
   //
   long i, k, ii, jj, row_in_parse_table, counter;
@@ -750,7 +322,7 @@ void CSparseMatrix::Write(ostream &os)
    
    03.2011. WW
 */
-void CSparseMatrix::Write_BIN(ostream &os)
+void SparseMatrix::Write_BIN(ostream &os)
 {
   if(storage_type == JDS )
      return; 
@@ -818,7 +390,7 @@ void CSparseMatrix::Write_BIN(ostream &os)
                      multithread simulation
    03/2011 WW      CRS storage
 ********************************************************************/
-void CSparseMatrix::multiVec(double *vec_s, double *vec_r)
+void SparseMatrix::multiVec(double *vec_s, double *vec_r)
 {
   long i, j, k, ii, jj, kk,ll,idof, jdof, counter;
   for(i=0; i<rows*DOF; i++)
@@ -922,7 +494,7 @@ void CSparseMatrix::multiVec(double *vec_s, double *vec_r)
       vec_sr: M^T*vec_s-->vec_r
    08/2008 WW
 ********************************************************************/
-void CSparseMatrix::Trans_MultiVec(double *vec_s, double *vec_r)
+void SparseMatrix::Trans_MultiVec(double *vec_s, double *vec_r)
 {
   long i, j, k, ii, jj, kk,ll,idof, jdof, counter;
   for(i=0; i<rows*DOF; i++)
@@ -1029,7 +601,7 @@ void CSparseMatrix::Trans_MultiVec(double *vec_s, double *vec_r)
    10/2007 WW
    03/2011 WW  CRS storage
 ********************************************************************/
-void CSparseMatrix::Diagonize(const long idiag, const double b_given, double *b)
+void SparseMatrix::Diagonize(const long idiag, const double b_given, double *b)
 {
   //
   double vdiag = 0.;
@@ -1140,7 +712,7 @@ void CSparseMatrix::Diagonize(const long idiag, const double b_given, double *b)
    Programm:  
    10/2007 WW
 ********************************************************************/
-void CSparseMatrix::Precond_Jacobi(double *vec_s, double *vec_r)
+void SparseMatrix::Precond_Jacobi(double *vec_s, double *vec_r)
 {
   long i, j, idof;
   double diag = 0.;

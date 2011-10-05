@@ -9,7 +9,7 @@
 
 #include "mat.h"
 #include "geo.h"
-#include "fdm.h"
+#include "FiniteDifference.h"
 using namespace std;
 using namespace _FDM;
 
@@ -50,6 +50,7 @@ int main ( int argc, char *argv[] )
 
   GeoRead();
   FiniteDifference *fdm = new FiniteDifference();
+  fdm->Initialize();
   fdm->TimeSteping();
     
 #ifdef TEST_OUT  ///TEST 

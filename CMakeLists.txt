@@ -15,6 +15,7 @@ SET (VERSION_PATCH 0)
 
 IF (WIN32)
 	SET ( CMAKE_CONFIGURATION_TYPES "Release;Debug" CACHE TYPE INTERNAL FORCE )
+    ADD_DEFINITIONS(-DWIN)	
 ENDIF (WIN32)
 
 IF (UNIX)
@@ -66,8 +67,8 @@ ADD_DEFINITIONS(
 		)
 
 SET(FDM_SOURCES main.cpp 
-    bc.cpp equation_class.cpp fdm.cpp geo.cpp mat.cpp matrix_class.cpp misc.cpp numerics.cpp out.cpp raster_Recharge.cpp
-   bc.h equation_class.h fdm.h geo.h mat.h matrix_class.h misc.h numerics.h out.h raster_recharge.h
+    bc.cpp equation_class.cpp FiniteDifference.cpp geo.cpp mat.cpp matrix_class.cpp misc.cpp numerics.cpp out.cpp RasterRecharge.cpp
+   bc.h equation_class.h FiniteDifference.h geo.h mat.h matrix_class.h misc.h numerics.h out.h RasterRecharge.h
   )
 
 add_executable(${PROJECT_NAME} ${FDM_SOURCES})
