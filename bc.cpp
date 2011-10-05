@@ -37,23 +37,32 @@ namespace _FDM
         if(aline.find("geometry")!=string::npos) 
         {
            ss.str(aline);
-           /// skip key
-           ss>>aline;
-           ss>>aline;
            if(aline.find("polyline")!=string::npos)
            {
+              /// skip key
+              ss>>aline;
+              ss>>aline;
               /// polyline name
               ss>>aline; 
               ply = GetPolylineByName(aline);             
            }  
            else if(aline.find("point")!=string::npos)
            {
+              /// skip key
+              ss>>aline;
+              ss>>aline;
               /// point ID
               ss>>ID; 
               point = GetPointByID(ID);             
 
            }
            //else if(aline.find("domain")!=string::npos)
+           else
+           {
+              cout<<"Geometry type is nit specified. Please check .dat file"<<endl;
+              exit(1);
+           }
+
            ss.clear();
         } 
         if(aline.find("value")!=string::npos) 
