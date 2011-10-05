@@ -122,7 +122,7 @@ namespace _FDM
         void CheckNuemannBC(Point *pnt);
         void CheckSourceSink(Point *pnt);
         void SetBC_at_PointOnLine(long i, Point *pnt, NeighborPoint_Type nbt);
-        void SetBC_at_Point_atCCorner(long i, Point *pnt, NeighborPoint_Type nbt);
+        void SetBC_at_Point_atCCorner(long i, Point *pnt);
         
         void Output_Domain_VTK(ostream &os);
 

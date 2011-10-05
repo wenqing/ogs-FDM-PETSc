@@ -118,7 +118,6 @@ namespace _FDM
         private:
           vector<Point*> points;
           string name;
-          friend class Polyline;
           friend class FiniteDifference;
           friend class ConditionData;           
     };

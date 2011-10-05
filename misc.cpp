@@ -125,6 +125,7 @@ long binarySearch(long *arr, long target, long start, long end)
 
 
 /// returns used heap size in bytes or negative if heap is corrupted.
+#ifdef WIN
 long HeapUsed()
 {
     _HEAPINFO info = { 0, 0, 0 };
@@ -141,6 +142,7 @@ long HeapUsed()
 
     return used;
 }
+#endif
 
 /*!
    \fn  inline bool CheckComment(string& string_line)

@@ -1,11 +1,16 @@
 /*!
 \file Definition of class Raster_Recharge
 */
+
+
+#include "raster_recharge.h"
+
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <limits>
-#include "raster_Recharge.h"
+#include <cfloat>
+#include <cmath>
 #include "misc.h"
 
 /// Constrcutor

@@ -8,6 +8,8 @@
 
 */
 
+#include "fdm.h"
+
 #include <iomanip>
 #include <iostream>
 #include <fstream>
@@ -15,7 +17,7 @@
 #include <vector>
 #include <limits>
 
-#include "fdm.h"
+
 #include "mat.h"
 //#include "geo.h"
 #include "bc.h"
@@ -24,7 +26,7 @@
 #include "equation_class.h"
 #include "out.h"
 
-#include "raster_Recharge.h"
+#include "raster_recharge.h"
 
 using namespace std;
 using namespace Math_Group;
@@ -914,20 +916,22 @@ namespace _FDM
                   SetBC_at_PointOnLine(i, pnt, N);
                   break;                 
                 case nm_21:
-                  SetBC_at_Point_atCCorner(i, pnt, E);
+                  SetBC_at_Point_atCCorner(i, pnt);
                   break;
                 case nm_22:
-                  SetBC_at_Point_atCCorner(i, pnt, W);
+                  SetBC_at_Point_atCCorner(i, pnt);
                   break;
                 case nm_23:
-                  SetBC_at_Point_atCCorner(i, pnt, S);
+                  SetBC_at_Point_atCCorner(i, pnt);
                   break;
                 case nm_24:
-                  SetBC_at_Point_atCCorner(i, pnt, N);
+                  SetBC_at_Point_atCCorner(i, pnt);
                   break;
                 //case border:
                 //  SetBC_at_Point_atCCorner(i, pnt, N);
                 //  break;
+                default:
+                  break; 
              }
 
          }
@@ -1024,8 +1028,9 @@ namespace _FDM
        04.2011 WW
        
    */
-   void FiniteDifference::SetBC_at_Point_atCCorner(long i, Point *pnt, NeighborPoint_Type nbt)
-   {
+  // void FiniteDifference::SetBC_at_Point_atCCorner(long i, Point *pnt, NeighborPoint_Type nbt)
+  void FiniteDifference::SetBC_at_Point_atCCorner(long i, Point *pnt)
+  {
       int k;
       CSparseMatrix *A = eqs->A;
       real *b = eqs->b; 

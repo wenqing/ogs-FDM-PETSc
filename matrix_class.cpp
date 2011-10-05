@@ -339,8 +339,7 @@ void Matrix::Read_BIN(fstream& is)
 SparseTable::SparseTable(FiniteDifference *fdm)
 {
   
-   long i=0, j=0, ii=0, jj=0;
-   long lbuff0=0, lbuff1=0; 
+   long i=0, j=0;
    long **larraybuffer;
    larraybuffer = NULL;
    storage_type = CRS;

@@ -10,6 +10,7 @@
 #include <vector>
 #include <sstream>
 #include <limits>
+#include <cfloat>
 
 #include "numerics.h"
 #include "geo.h"

@@ -65,9 +65,10 @@ int main ( int argc, char *argv[] )
 
 #endif
 
-
+    
+#ifdef WIN
   cout<<"\n\tMemory usage: "<< HeapUsed()/1024<<"KB"<<endl;
-
+#endif
 
   delete fdm;
   GeoReleaseMemory();

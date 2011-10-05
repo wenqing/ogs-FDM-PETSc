@@ -18,7 +18,6 @@ namespace _FDM
 //--------------- class Numerics ------------------------------
    Numerics::Numerics(ifstream &ins)
    {
-     long ID = 0;
      string aline;
      std::stringstream ss;
 

@@ -4,15 +4,18 @@ Programing:
 11/2007 WW/
 **************************************************************************/
 
+//#include"matrix_class.h"
+#include"equation_class.h"
+
 //
 #include <iostream>
 #include <iomanip>
 #include <limits>
+#include <cfloat>
 #include <time.h>
 
-//#include"matrix_class.h"
-#include"equation_class.h"
 #include"numerics.h"
+
 //
 namespace Math_Group
 {
@@ -23,8 +26,8 @@ Programing:
 10/2007 WW/
 **************************************************************************/
 Linear_EQS::Linear_EQS(const SparseTable &sparse_table, 
-                       const long dof, bool messg):message(messg),
-                       M(NULL), pivots(NULL), z_vec(NULL)
+                       const long dof, bool messg):M(NULL),
+                       pivots(NULL), z_vec(NULL), message(messg)
 {
   long i, size;
   A = new CSparseMatrix(sparse_table, dof);

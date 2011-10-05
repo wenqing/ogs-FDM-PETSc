@@ -3,7 +3,11 @@
   
    04.2011. WW
 */
+#include "bc.h"
+
+
 #include <iomanip>
+#include <cfloat>
 #include <limits>
 #include <iostream>
 #include <fstream>
@@ -11,7 +15,6 @@
 #include <vector>
 
 #include "geo.h"
-#include "bc.h"
 
 using namespace std;
 namespace _FDM
