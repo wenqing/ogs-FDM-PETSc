@@ -1,9 +1,9 @@
 /*!
-   \file File defines class ConditionData
+   \file File defines class ConditionDataBC
   
    04.2011. WW
 */
-#include "bc.h"
+#include "ConditionDataBC.h"
 
 
 #include <iomanip>
@@ -19,8 +19,8 @@
 using namespace std;
 namespace _FDM
 {
-   //--------------- class  ConditionData ---------------------
-   ConditionData::ConditionData(ifstream &ins)
+   //--------------- class  ConditionDataBC ---------------------
+   ConditionDataBC::ConditionDataBC(ifstream &ins)
    {        
 
      long ID = 0;
@@ -82,14 +82,14 @@ namespace _FDM
  
    //--------------------------------------------------
    /*!
-   \fn  Point* ConditionData::GetClosedPoint(Point *pnt)
+   \fn  Point* ConditionDataBC::GetClosedPoint(Point *pnt)
       
       For a given point pnt, find a closed point of geometry
       entity
       
       04.2011. WW
    */
-   Point* ConditionData::GetClosedPoint(const Point *pnt, const double tol)
+   Point* ConditionDataBC::GetClosedPoint(const Point *pnt, const double tol)
    {
       Point *bc_pnt;
  
@@ -122,7 +122,7 @@ namespace _FDM
    }
 
    /// Output boundary condition 
-   void ConditionData::Write(ostream &os)
+   void ConditionDataBC::Write(ostream &os)
    {
       os<<"\t geometry: ";
       if(ply)
@@ -133,7 +133,7 @@ namespace _FDM
    }
 
    /// As the funtion name
-   void ConditionData::SetGeoEntityType(string type_name)
+   void ConditionDataBC::SetGeoEntityType(string type_name)
    {
        BC_Type pnt_bc_type;
        if(type_name.find("neumann")!=string::npos)

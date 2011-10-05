@@ -1,5 +1,5 @@
-#ifndef bc_INC
-#define bc_INC
+#ifndef ConditionDataBC_INC
+#define ConditionDataBC_INC
 #include<iostream>
 #include "misc.h"
 
@@ -10,15 +10,15 @@ namespace _FDM
    class Polyline;
     
    /*!
-      \class ConditionData
+      \class ConditionDataBC
        
       Manage Initial Boundary conditions  
    */
-   class ConditionData
+   class ConditionDataBC
    {
        public:
-         ConditionData(ifstream &ins);
-         ~ConditionData() {}
+         ConditionDataBC(ifstream &ins);
+         ~ConditionDataBC() {}
 
          void Write(ostream &os = cout);
 

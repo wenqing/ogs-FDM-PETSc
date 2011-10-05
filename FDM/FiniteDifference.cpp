@@ -20,10 +20,10 @@
 
 #include "mat.h"
 //#include "geo.h"
-#include "bc.h"
+#include "ConditionDataBC.h"
 #include "numerics.h"
-#include "matrix_class.h"
-#include "equation_class.h"
+#include "SparseMatrix.h"
+#include "LinearEQS.h"
 #include "out.h"
 
 #include "RasterRecharge.h"
