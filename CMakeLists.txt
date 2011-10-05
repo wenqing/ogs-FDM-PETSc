@@ -66,6 +66,11 @@ ADD_DEFINITIONS(
 #
 		)
 
+ADD_SUBDIRECTORY( Geometry )
+ADD_SUBDIRECTORY( LinearSolver )
+ADD_SUBDIRECTORY( Math )
+
+		
 SET(FDM_SOURCES main.cpp 
     bc.cpp equation_class.cpp FiniteDifference.cpp geo.cpp mat.cpp matrix_class.cpp misc.cpp numerics.cpp out.cpp RasterRecharge.cpp
    bc.h equation_class.h FiniteDifference.h geo.h mat.h matrix_class.h misc.h numerics.h out.h RasterRecharge.h
