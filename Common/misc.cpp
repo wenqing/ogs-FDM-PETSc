@@ -12,6 +12,8 @@
 
 using namespace std;
 
+namespace AuxFunctions
+{
  string string_To_lower(string strToConvert)
 {
    for(unsigned int i=0;i<strToConvert.length();i++)
@@ -19,7 +21,37 @@ using namespace std;
       strToConvert[i] = tolower(strToConvert[i]);
    }
    return strToConvert;
-}; 
+}
+
+/*!
+    \brief Binary search a array
+     The array must be sorted
+     
+     \param arr     an array 
+     \param target  searched index
+     \param start   the start index of the array 
+     \parm  end     the end index of the array
+     
+     By WW. 03.2011
+    
+*/
+long binarySearch(long *arr, long target, long start, long end) 
+{
+   long middle;
+   while (start <= end) 
+   {
+      middle = (start + end) / 2;
+      if (arr[middle] == target)
+         return middle;
+      else if (arr[middle] > target)
+         end = middle - 1;
+      else
+         start = middle + 1;
+   }
+   return -1;
+}
+
+
 
 
 /*!
@@ -74,7 +106,7 @@ void Read_Block(ifstream &ins, vector<string> &key, vector<float> & key_value)
               counter++;
               ss.str(aline);
               ss>> key[i];
-              key[i] = string_To_lower(key[i]);
+			  key[i] = AuxFunctions::string_To_lower(key[i]);
               foundkey[i] = true;
               ss>> key_value[i];
               ss.clear();
@@ -99,33 +131,6 @@ void Read_Block(ifstream &ins, vector<string> &key, vector<float> & key_value)
 }
 
 
-/*!
-    \brief Binary search a array
-     The array must be sorted
-     
-     \param arr     an array 
-     \param target  searched index
-     \param start   the start index of the array 
-     \parm  end     the end index of the array
-     
-     By WW. 03.2011
-    
-*/
-long binarySearch(long *arr, long target, long start, long end) 
-{
-   long middle;
-   while (start <= end) 
-   {
-      middle = (start + end) / 2;
-      if (arr[middle] == target)
-         return middle;
-      else if (arr[middle] > target)
-         end = middle - 1;
-      else
-         start = middle + 1;
-   }
-   return -1;
-}
 
 
 /// returns used heap size in bytes or negative if heap is corrupted.
@@ -155,7 +160,7 @@ long HeapUsed()
 
    10.06.2011. WW 
 */
-inline bool CheckComment(string& string_line)
+bool CheckComment(string& string_line)
 {
    // The string is a comment
    if(string_line.c_str()[0]=='#')
@@ -165,3 +170,6 @@ inline bool CheckComment(string& string_line)
    string_line = string_line.substr(0, string_line.find("#"));  
    return false;      
 }
+
+
+} //namespace

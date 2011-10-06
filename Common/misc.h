@@ -17,8 +17,10 @@ typedef  double real;
    Convert upper case to lower case
    WW 04.2011 
 */
-extern std::string string_To_lower(std::string strToConvert);
 
+namespace AuxFunctions
+{
+std::string string_To_lower(std::string strToConvert);
 /*!
     \brief Binary search a array
      The array must be sorted
@@ -31,7 +33,7 @@ extern std::string string_To_lower(std::string strToConvert);
      By WW. 03.2011
     
 */
-extern long binarySearch(long *arr, long target, long start, long end); 
+long binarySearch(long *arr, long target, long start, long end); 
 
 /*!
 \fn Read_Block
@@ -40,7 +42,7 @@ extern long binarySearch(long *arr, long target, long start, long end);
 
    WW 04.2011
 */
-extern void Read_Block(std::ifstream &ins, std::vector<std::string> &key, std::vector<float> & key_value);
+void Read_Block(std::ifstream &ins, std::vector<std::string> &key, std::vector<float> & key_value);
 
 /*!
 \fn  DeleteArray(num *an_array)
@@ -73,11 +75,11 @@ template<class num> void  DeleteVector(std::vector<num*> &a_vec)
 }
 
 /// Check comment
-inline bool CheckComment(std::string& string_line);
+bool CheckComment(std::string& string_line);
 
 /// returns used heap size in bytes or negative if heap is corrupted.
 extern long HeapUsed();
 
-
+}
 
 #endif

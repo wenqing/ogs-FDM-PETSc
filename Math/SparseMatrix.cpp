@@ -152,7 +152,7 @@ double& SparseMatrix::operator() (const long i, const long j) const
      /// Left boundary of this row: num_column_entries[ir]
      /// Right boundary of this row: num_column_entries[ir+1]
      /// Search target is jr
-     k = binarySearch(entry_column, jr, num_column_entries[ir], num_column_entries[ir+1]); 
+	  k = AuxFunctions::binarySearch(entry_column, jr, num_column_entries[ir], num_column_entries[ir+1]); 
      if(k==-1)
        return zero_e; 
 
@@ -632,7 +632,7 @@ void SparseMatrix::Diagonize(const long idiag, const double b_given, double *b)
      /// Clean column id                
      for (i = 0; i < rows; i++)
      {
-        j = binarySearch(entry_column, id, num_column_entries[i], num_column_entries[i+1]); 
+		 j = AuxFunctions::binarySearch(entry_column, id, num_column_entries[i], num_column_entries[i+1]); 
         if(j == -1)
            continue;
         j0=entry_column[j];

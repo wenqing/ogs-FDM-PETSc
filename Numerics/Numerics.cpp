@@ -26,7 +26,7 @@ namespace _FDM
      for(int i=0; i<4; i++)
      {
         getline(ins, aline); 
-        aline = string_To_lower(aline);
+		aline = AuxFunctions::string_To_lower(aline);
         if(aline.find("linear")!=string::npos) 
         {
            ss.str(aline);

@@ -63,7 +63,7 @@ int main ( int argc, char *argv[] )
 
     
 #ifdef WIN
-  cout<<"\n\tMemory usage: "<< HeapUsed()/1024<<"KB"<<endl;
+  cout<<"\n\tMemory usage: "<< AuxFunctions::HeapUsed()/1024<<"KB"<<endl;
 #endif
 
   delete fdm;

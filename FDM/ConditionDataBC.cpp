@@ -22,6 +22,9 @@ namespace _FDM
 {
    using namespace std;
    using namespace Geometry_Group;
+   using namespace AuxFunctions;
+
+
    //--------------- class  ConditionDataBC ---------------------
    ConditionDataBC::ConditionDataBC(ifstream &ins,  Geometry *geo)
    {        
@@ -39,7 +42,7 @@ namespace _FDM
           continue;
 
 
-        aline = string_To_lower(aline);
+		aline = AuxFunctions::string_To_lower(aline);
         if(aline.find("geometry")!=string::npos) 
         {
            ss.str(aline);

@@ -18,7 +18,9 @@ namespace _FDM
 {
    using namespace std;
    using namespace Geometry_Group;
+   using namespace AuxFunctions;
 	
+
    Output::Output(string f_path, string f_name, ifstream &ins,  Geometry_Group::Geometry *geometry)
    {
      string aline;
@@ -44,7 +46,7 @@ namespace _FDM
 
         if(aline.find("...")!=string::npos)
            break;
-        aline = string_To_lower(aline);
+		aline = AuxFunctions::string_To_lower(aline);
         if(aline.find("geometry")!=string::npos) 
         {
            ss.str(aline);
@@ -52,7 +54,7 @@ namespace _FDM
            ss>>aline;
            ss>>aline;
            ss.clear();
-           aline = string_To_lower(aline);
+		   aline = AuxFunctions::string_To_lower(aline);
            geo = false; 
 
            if(aline.find("domain")!=string::npos)

@@ -36,6 +36,8 @@ namespace _FDM
 {
 
    using namespace Geometry_Group;
+   using namespace AuxFunctions;
+
 //--------------- class  FiniteDifference ---------------------
    /// Constructor 
    void FiniteDifference:: Initialize()
@@ -90,7 +92,7 @@ namespace _FDM
          if(CheckComment(aline))
            continue;
 
-         aline = string_To_lower(aline);
+		 aline = AuxFunctions::string_To_lower(aline);
          if(aline.find("material")!=string::npos)
          {
             mat = new Mat_Property(ins);

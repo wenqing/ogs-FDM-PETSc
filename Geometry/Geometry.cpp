@@ -25,6 +25,7 @@ namespace Geometry_Group
 {
 
 using namespace std;
+using namespace AuxFunctions;
 /*!
   \fn  ReadPolyline()
   Read geometrical data
@@ -53,7 +54,7 @@ void Geometry::GeoRead(string file_name)
       getline(ins, aline); 
       if(CheckComment(aline))
           continue;
-      aline = string_To_lower(aline);
+	  aline = AuxFunctions::string_To_lower(aline);
       if(aline.find("point")!=string::npos)  
       {   
          for(;;)
