@@ -16,7 +16,6 @@
 
 namespace Math_Group{
 
-  using namespace std;
 //
 
 
@@ -53,8 +52,8 @@ class SparseMatrix
      StorageType GetStorageType() const {return storage_type;}
 
      // Print
-     void Write(ostream &os=cout);   
-     void Write_BIN(ostream &os);   
+     void Write(std::ostream &os=std::cout);   
+     void Write_BIN(std::ostream &os);   
 
    private:
      // Data

@@ -14,13 +14,14 @@
    WW 04.2011
    
 */
+namespace Geometry_Group{ class Geometry;}
+
 namespace Math_Group {class Linear_EQS; class SparseTable;}
 
 class RasterRecharge;
 namespace _FDM
 {
    class Mat_Property;
-   class Polyline; 
    class ConditionDataBC;
    class Numerics;
    class Output;
@@ -28,11 +29,16 @@ namespace _FDM
    using Math_Group::Linear_EQS;
    using Math_Group::SparseTable;
 
+   using Geometry_Group::Point;
+   using Geometry_Group::Polyline;
+
 //--------------- class  FiniteDifference ---------------------
    class FiniteDifference 
    {
       public:
-		  FiniteDifference() {}
+        FiniteDifference(std::string f_path, std::string f_name)
+          : file_path(f_path), file_name(f_name) 		  
+		  {}
         ~FiniteDifference();   
 
         void Initialize();
@@ -40,7 +46,7 @@ namespace _FDM
         void AssembleEQS(); 
 
         void Output_Results(const float c_tim, const int i_step);
-        void Write(ostream &os = cout);
+		void Write(std::ostream &os = std::cout);
         void WriteGrid_VTK();
 
       private:
@@ -63,6 +69,7 @@ namespace _FDM
         /// Cell size
         float cell_size; 
 
+        Geometry_Group::Geometry *geo_grid; 
  
         /// Time step
         float dt;
@@ -73,7 +80,7 @@ namespace _FDM
         /// Time factor
         real tim_fac;
         ///
-        string time_unit; 
+        std::string time_unit; 
 
         /// Material
         Mat_Property *mat;
@@ -82,10 +89,10 @@ namespace _FDM
         Numerics *num; 
 
         /// Boundary Condition
-        vector<ConditionDataBC*> BC_Neumann; 
-        vector<ConditionDataBC*> BC_Dirichlet; 
-        vector<ConditionDataBC*> Source_Sink; 
-        vector<long> BC_Dirichlet_points; 
+        std::vector<ConditionDataBC*> BC_Neumann; 
+        std::vector<ConditionDataBC*> BC_Dirichlet; 
+        std::vector<ConditionDataBC*> Source_Sink; 
+        std::vector<long> BC_Dirichlet_points; 
         ConditionDataBC *ic;
          
         /// Source term
@@ -93,7 +100,7 @@ namespace _FDM
 
         
         /// Output
-        vector<Output*> outp;
+        std::vector<Output*> outp;
 
         /// Boundary of Domain
         Polyline *boundary;
@@ -102,28 +109,29 @@ namespace _FDM
         /// If other geometry
   
         /// Save equation indicies of grid points 
-        vector<long> pnt_eqs_index;
+        std::vector<long> pnt_eqs_index;
         ///
-        vector<Point*>  grid_point_in_use;
+        std::vector<Point*>  grid_point_in_use;
         
         /// Cell mark. 
-        vector<bool> cell_status;
+        std::vector<bool> cell_status;
         ///
         long num_cell_in_use;
   
         void CaterogorizeGridPoint();
 
 
-
+        std::string file_name; 
+        std::string file_path; 
 
         /// Set Dirichlet boundary condition
         bool CheckDirichletBC(Point *pnt);
         void CheckNuemannBC(Point *pnt);
         void CheckSourceSink(Point *pnt);
-        void SetBC_at_PointOnLine(long i, Point *pnt, NeighborPoint_Type nbt);
+		void SetBC_at_PointOnLine(long i, Point *pnt, Geometry_Group::NeighborPoint_Type nbt);
         void SetBC_at_Point_atCCorner(long i, Point *pnt);
         
-        void Output_Domain_VTK(ostream &os);
+		void Output_Domain_VTK(std::ostream &os);
 
         friend class ConditionDataBC; 
         friend class Math_Group::SparseTable; 

@@ -21,6 +21,7 @@
 */
 namespace _FDM
 {
+  using namespace std;
   Mat_Property::Mat_Property(ifstream &ins)
   {
      vector<string> key(2);

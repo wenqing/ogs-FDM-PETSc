@@ -19,16 +19,18 @@
 
 #include "Point.h"
 #include "GeoEntity.h"
+#include "Geometry.h"
 
 
-namespace _FDM
+namespace Geometry_Group
 {
 
+   using namespace std;
    /*!
       \fn constructor of class Polyline
       
    */
-   Polyline::Polyline(ifstream &ins, string ply_name): Geo_Entity(ply), name(ply_name)
+   Polyline::Polyline(ifstream &ins, string ply_name, Geometry *geo): Geo_Entity(ply), name(ply_name)
    {
       long id; 
       string aline;
@@ -44,7 +46,7 @@ namespace _FDM
          ss>> id ;
          ss.clear();
 
-         points.push_back(GetPointByID(id)); 
+         points.push_back(geo->GetPointByID(id)); 
       }
          
    }
@@ -132,135 +134,3 @@ namespace _FDM
       return min_dist; 
    } 
 }
-
-using namespace _FDM;
-vector<_FDM::Point*> points;
-vector<_FDM::Polyline*> polylines;
-/*!
-  \fn  ReadPolyline()
-  Read geometrical data
-
-  14.04.2011. WW
-*/
-void GeoRead()
-{   
-   long id; 
-   float xy[2];
-   string aline;
-   std::stringstream ss;
-     
-   string geo_fname = file_name+".geo"; 
-   ifstream ins(geo_fname.c_str());
-
-   if(!ins.good()) 
-   {
-      cout<<"Could not find file "<<geo_fname<<". Stop now!"<<endl;
-      exit(1);
-   } 
-
-   cout<<">> Read geometry data."<<endl;
-   while(!ins.eof())
-   {
-      getline(ins, aline); 
-      if(CheckComment(aline))
-          continue;
-      aline = string_To_lower(aline);
-      if(aline.find("point")!=string::npos)  
-      {   
-         for(;;)
-         {
-            getline(ins, aline); 
-            if(aline.find("...")!=string::npos)
-              break; 
-         
-            ss.str(aline);
-            ss>> id >> xy[0] >> xy[1];
-            ss.clear();
-
-            points.push_back(new _FDM::Point(id, xy[0], xy[1])); 
-         }
-      }
-
-      if(aline.find("polyline")!=string::npos) 
-      {
-         ss.str(aline);
-         // Skip "---" and "polyline"
-         ss>>aline>>aline>>aline;
-         ss.clear();
-         polylines.push_back(new _FDM::Polyline(ins, aline)); 
-
-      }
-       
-
-   }
-
-} 
-
-/*!
-    \fn Polyline *GetPolylineByName(string name); 
-   
-     Find a polyline by name 
-      
-     04.2011. WW 
-*/
-_FDM::Polyline *GetPolylineByName(string name)
-{
-   int i;
-  
-   for(i=0; i<(int)polylines.size(); i++)
-   {
-      if(polylines[i]->Name().find(name)!=string::npos)
-      {
-         return polylines[i]; 
-      }
-   }          
-   return NULL;
-}
-/*!
-    \fn FDM::Point *GetPointByID(long ID); 
-   
-     Find a polyline by name 
-      
-     04.2011. WW 
-*/
-
-_FDM::Point *GetPointByID(long ID)
-{
-   int i;
-  
-   for(i=0; i<(int)points.size(); i++)
-   {
-      if(points[i]->Index() == ID)
-      {
-         return points[i]; 
-      }
-   }          
-   return NULL;
-}
-//-------------------------------------------
-/*!
-   \fn  WriteGeoData(ostream &os = cout);
-   
-    Output Geometrical Data
-*/
-void WriteGeoData(ostream &os)
-{
-   size_t i;
-
-   os<<"--- point"<<endl;
-   for(i=0; i<points.size(); i++)
-     points[i]->Write(os);
-   os<<"...\n"<<endl;
-
-  
-   for(i=0; i<polylines.size(); i++)
-      polylines[i]->Write(os);
-
-}
-
-void GeoReleaseMemory()
-{
-   DeleteVector(points);
-   DeleteVector(polylines);
-}
-

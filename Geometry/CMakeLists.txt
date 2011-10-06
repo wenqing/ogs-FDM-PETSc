@@ -6,6 +6,8 @@ set( GEO_SOURCES
 	Polyline.h
 	Point.cpp
 	Polyline.cpp
+	Geometry.h
+	Geometry.cpp
 )
 
 include_directories(

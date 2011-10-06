@@ -13,11 +13,13 @@
 #include<fstream>
 #include<cmath>
 
-namespace _FDM
+namespace _FDM {class FiniteDifference; class ConditionDataBC;}
+
+namespace Geometry_Group
 {
    
-   class FiniteDifference;
-   class ConditionDataBC; 
+   using _FDM::FiniteDifference;
+   using _FDM::ConditionDataBC; 
    /*!
      \class  Point
          

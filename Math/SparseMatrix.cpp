@@ -17,8 +17,10 @@
 #include "SparseTable.h"
 #include "misc.h"
 
-namespace Math_Group{
+namespace Math_Group
+{
 
+using namespace std;
 /*\!
 ********************************************************************
    Constructor of sparse matrix

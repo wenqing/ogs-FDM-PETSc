@@ -16,12 +16,14 @@
 
 #include "Point.h"
 #include "Polyline.h"
+#include "Geometry.h"
 
-using namespace std;
 namespace _FDM
 {
+   using namespace std;
+   using namespace Geometry_Group;
    //--------------- class  ConditionDataBC ---------------------
-   ConditionDataBC::ConditionDataBC(ifstream &ins)
+   ConditionDataBC::ConditionDataBC(ifstream &ins,  Geometry *geo)
    {        
 
      long ID = 0;
@@ -48,7 +50,7 @@ namespace _FDM
               ss>>aline;
               /// polyline name
               ss>>aline; 
-              ply = GetPolylineByName(aline);             
+              ply = geo->GetPolylineByName(aline);             
               ss.clear();
            }  
            else if(aline.find("point")!=string::npos)
@@ -58,7 +60,7 @@ namespace _FDM
               ss>>aline;
               /// point ID
               ss>>ID; 
-              point = GetPointByID(ID);             
+              point = geo->GetPointByID(ID);             
               ss.clear();
            }
            else if(aline.find("domain")!=string::npos)

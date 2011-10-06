@@ -10,29 +10,32 @@
 #include<fstream>
 
 #include"misc.h"
-using namespace std;
+
+namespace Geometry_Group {class Geo_Entity; class Geometry;}
 namespace _FDM
 {
    class FiniteDifference;
-   class Geo_Entity;
 
    class Output
    {
        public:
-         Output(ifstream &ins);
+         Output(std::string f_path, std::string f_name, std::ifstream &ins, Geometry_Group::Geometry *geometry);
          ~Output();
 
-         void Write(ostream &os = cout);
+		 void Write(std::ostream &os = std::cout);
 
        private:
-         vector<float> at_times;
+         std::vector<float> at_times;
          int steps;
 
-         string fname;
-         ofstream *os; 
+         std::string fname;
+         std::ofstream *os; 
         
+         std::string file_name; 
+         std::string file_path; 
+
          /// geomtry;
-         Geo_Entity *geo_entity;  
+         Geometry_Group::Geo_Entity *geo_entity;  
 
          friend class FiniteDifference;     
    };

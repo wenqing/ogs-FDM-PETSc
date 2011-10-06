@@ -17,13 +17,14 @@
 #include "GeoEntity.h"
 
 
-namespace _FDM
+
+namespace Geometry_Group
 {
    
-   class FiniteDifference;
-   class ConditionDataBC; 
-
+   //using _FDM::FiniteDifference;
+   //using _FDM::ConditionDataBC; 
    class Point;
+   class Geometry;
 
    /*!
       \class Polyline
@@ -33,33 +34,24 @@ namespace _FDM
     class Polyline: public Geo_Entity 
     {
         public:
-          Polyline(ifstream &ins, string ply_name);
+          Polyline(std::ifstream &ins, std::string ply_name, Geometry *geo);
           ~Polyline();
 
-        string Name() const {return name;}
+        std::string Name() const {return name;}
 
-        void Write(ostream &os = cout);
+        void Write(std::ostream &os = std::cout);
         
         bool PointInDomain(double x, double y);
         real MinDisttanceTo_a_Point(const Point *pnt);
 
         private:
-          vector<Point*> points;
-          string name;
+          std::vector<Point*> points;
+          std::string name;
           friend class FiniteDifference;
           friend class ConditionDataBC;           
     };
    
 }
-
-/// Contains all points of the domain
-extern vector<_FDM::Point*> points;
-extern vector<_FDM::Polyline*> polylines;
-extern void GeoRead(); 
-extern void GeoReleaseMemory(); 
-extern _FDM::Polyline *GetPolylineByName(string name); 
-extern _FDM::Point *GetPointByID(long ID); 
-extern void WriteGeoData(ostream &os = cout);
 
 
 

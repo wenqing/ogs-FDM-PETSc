@@ -9,10 +9,7 @@
 
 typedef  double real;
 
-using namespace std;
 
-extern string file_name;
-extern string file_path;
 
 /*!
 \fn string_To_lower
@@ -20,7 +17,7 @@ extern string file_path;
    Convert upper case to lower case
    WW 04.2011 
 */
-extern string string_To_lower(string strToConvert);
+extern std::string string_To_lower(std::string strToConvert);
 
 /*!
     \brief Binary search a array
@@ -43,7 +40,7 @@ extern long binarySearch(long *arr, long target, long start, long end);
 
    WW 04.2011
 */
-extern void Read_Block(ifstream &ins, vector<string> &key, vector<float> & key_value);
+extern void Read_Block(std::ifstream &ins, std::vector<std::string> &key, std::vector<float> & key_value);
 
 /*!
 \fn  DeleteArray(num *an_array)
@@ -64,7 +61,7 @@ template<class num> void  DeleteArray(num *an_array)
    if(an_array) delete [] an_array;
    an_array = NULL; 
 }
-template<class num> void  DeleteVector(vector<num*> &a_vec)
+template<class num> void  DeleteVector(std::vector<num*> &a_vec)
 {
    
    while (a_vec.size()>0)
@@ -76,7 +73,7 @@ template<class num> void  DeleteVector(vector<num*> &a_vec)
 }
 
 /// Check comment
-inline bool CheckComment(string& string_line);
+inline bool CheckComment(std::string& string_line);
 
 /// returns used heap size in bytes or negative if heap is corrupted.
 extern long HeapUsed();

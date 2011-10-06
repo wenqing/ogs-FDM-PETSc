@@ -8,6 +8,10 @@
 #include <malloc.h>
 
 #include "misc.h"
+
+
+using namespace std;
+
  string string_To_lower(string strToConvert)
 {
    for(unsigned int i=0;i<strToConvert.length();i++)

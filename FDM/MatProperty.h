@@ -4,7 +4,7 @@
 #include<fstream>
 
 #include"misc.h"
-using namespace std;
+
 namespace _FDM
 {
    class FiniteDifference;
@@ -12,10 +12,10 @@ namespace _FDM
    class Mat_Property
    {
        public:
-         Mat_Property(ifstream &ins);
+        Mat_Property(std::ifstream &ins);
          ~Mat_Property() {}
 
-         void Write(ostream &os = cout);
+		 void Write(std::ostream &os = std::cout);
 
        private:
          real conductivity;

@@ -13,13 +13,19 @@
 #include <cmath>
 #include "misc.h"
 
+
+using namespace std;
 /// Constrcutor
-RasterRecharge::RasterRecharge()
+RasterRecharge::RasterRecharge(string f_path, string f_name)
 {
   string aline;
   double step;
   std::stringstream ss;
   string key, uname;  
+
+  file_path = f_path;
+  file_name = f_name; 	
+
 
   uname = file_name+".pcp";
   ifstream ins(uname.c_str());

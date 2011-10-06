@@ -11,11 +11,11 @@
 #include<vector>
 #include<iostream>
 #include<string>
-using namespace std;
+
 class RasterRecharge
 {
    public:
-    RasterRecharge();
+    RasterRecharge(std::string f_path, std::string f_name);
     ~RasterRecharge()
      {
         delete [] GIS_shape_head;
@@ -47,8 +47,11 @@ class RasterRecharge
     double x0, y0, csize, ndata_v;
 
 
-    vector<double> precip_times;
-    vector<string> precip_files;
+    std::vector<double> precip_times;
+    std::vector<std::string> precip_files;
+
+    std::string file_name; 
+    std::string file_path; 
 
 };
 #endif

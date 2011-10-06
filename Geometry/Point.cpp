@@ -20,8 +20,9 @@
 #include "GeoEntity.h"
 
 
-namespace _FDM
+namespace Geometry_Group
 {
+   using namespace std;
    /*!
       \fn Point::Write(ostream &os)
         

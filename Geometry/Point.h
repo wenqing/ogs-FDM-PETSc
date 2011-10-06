@@ -17,11 +17,12 @@
 #include "GeoEntity.h"
 
 
-namespace _FDM
+
+namespace Geometry_Group
 {
    
-   class FiniteDifference;
-   class ConditionDataBC; 
+   //using _FDM::FiniteDifference;
+   //using _FDM::ConditionDataBC; 
 
    class Polyline;
 
@@ -55,8 +56,8 @@ namespace _FDM
                         *(coordinates[1]-a_coord[1]));
             }
  
-        void Write(ostream &os = cout);
-        void Write_VTK(ostream &os = cout);
+		void Write(std::ostream &os = std::cout);
+		void Write_VTK(std::ostream &os = std::cout);
         long Index() const {return index;}
         long GetNeighborIndex(const int ii) const {return neighbor_points[ii]; } 
         long GetNumNeighborPoints() const {return (long)neighbor_points.size(); } 
@@ -74,9 +75,9 @@ namespace _FDM
         BC_Type bc_type;
         
 
-        vector<long> neighbor_points; 
-        vector<NeighborPoint_Type> np_position; 
-        vector<NeighborCell_Type> neighbor_cell_type; 
+        std::vector<long> neighbor_points; 
+        std::vector<NeighborPoint_Type> np_position; 
+        std::vector<NeighborCell_Type> neighbor_cell_type; 
 
         friend class Polyline;
         friend class FiniteDifference;

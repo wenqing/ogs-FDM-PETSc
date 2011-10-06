@@ -17,7 +17,6 @@ namespace _FDM {class FiniteDifference;}
 namespace Math_Group{
 
   using _FDM::FiniteDifference;
-  using namespace std;
 //
   class SparseMatrix;
 
@@ -28,7 +27,7 @@ class SparseTable
     public:
       SparseTable(FiniteDifference *fdm);
       ~SparseTable();   
-      void Write(ostream &os=cout);    
+	  void Write(std::ostream &os=std::cout);    
     private:
       bool symmetry;
       // Topology mapping from data array to matrix

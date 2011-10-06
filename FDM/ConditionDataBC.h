@@ -3,11 +3,13 @@
 #include<iostream>
 #include "misc.h"
 
+
+namespace Geometry_Group{class Point; class Polyline; class Geometry;}
 namespace _FDM
 {
    class Mat_Property;
-   class Point;
-   class Polyline;
+
+   using Geometry_Group::Geometry;
     
    /*!
       \class ConditionDataBC
@@ -17,19 +19,19 @@ namespace _FDM
    class ConditionDataBC
    {
        public:
-         ConditionDataBC(ifstream &ins);
+         ConditionDataBC(std::ifstream &ins, Geometry *geo);
          ~ConditionDataBC() {}
 
-         void Write(ostream &os = cout);
+         void Write(std::ostream &os = std::cout);
 
-         void SetGeoEntityType(string type_name);
+         void SetGeoEntityType(std::string type_name);
 
-         Point* GetClosedPoint(const Point *pnt, const double tol);
+         Geometry_Group::Point* GetClosedPoint(const Geometry_Group::Point *pnt, const double tol);
        private:
 
 
-         Point *point;
-         Polyline *ply; 
+         Geometry_Group::Point *point;
+         Geometry_Group::Polyline *ply; 
          real value;   
          
          friend class FiniteDifference;   

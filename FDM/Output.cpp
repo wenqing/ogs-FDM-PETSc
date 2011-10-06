@@ -12,14 +12,20 @@
 #include "misc.h"
 #include "Point.h"
 #include "Polyline.h"
+#include "Geometry.h"
 
-using namespace std;
 namespace _FDM
 {
-   Output::Output(ifstream &ins)
+   using namespace std;
+   using namespace Geometry_Group;
+	
+   Output::Output(string f_path, string f_name, ifstream &ins,  Geometry_Group::Geometry *geometry)
    {
      string aline;
      std::stringstream ss;
+
+     file_path = f_path;
+     file_name = f_name; 	
 
      int ID;
      float ti = 0.; 
@@ -63,7 +69,7 @@ namespace _FDM
               ss>>aline;
               ss>>aline;  
               ss.clear();
-              Polyline *ply = GetPolylineByName(aline);       
+              Polyline *ply = geometry->GetPolylineByName(aline);       
 
               fname = file_name +"_ply" + ply->Name();
               geo_entity = ply;  
@@ -78,7 +84,7 @@ namespace _FDM
               ss>>ID; 
               ss.clear();
 
-              geo_entity = GetPointByID(ID); 
+              geo_entity = geometry->GetPointByID(ID); 
               ss<<ID; 
               fname = file_name +"_point" + ss.str();
               ss.clear();

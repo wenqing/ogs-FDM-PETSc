@@ -7,6 +7,7 @@ set( LinSolver_SOURCES
 
 include_directories(
 	.
+	../Common
 	../Math
 	../Numerics
 )

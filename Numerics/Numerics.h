@@ -2,17 +2,17 @@
 #define numerics_INC
 #include<iostream>
 
-#include "Common\misc.h"
+#include "misc.h"
 
 namespace _FDM
 {
    class Numerics
    {
        public:
-         Numerics(ifstream &ins);
+         Numerics(std::ifstream &ins);
          ~Numerics() {}
 
-         void Write(ostream &os = cout);
+		 void Write(std::ostream &os = std::cout);
 
          int GetType() const {return type;}
          int GetPrecType() const {return prec_type;}
@@ -30,8 +30,8 @@ namespace _FDM
           
 
          //For output;
-         string name;
-         string prec_name; 
+         std::string name;
+         std::string prec_name; 
    };
 }
 

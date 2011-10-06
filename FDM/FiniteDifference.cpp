@@ -24,6 +24,7 @@
 #include "SparseMatrix.h"
 #include "LinearEQS.h"
 #include "Polyline.h"
+#include "Geometry.h"
 #include "Output.h"
 
 
@@ -33,6 +34,8 @@ using namespace std;
 using namespace Math_Group;
 namespace _FDM
 {
+
+   using namespace Geometry_Group;
 //--------------- class  FiniteDifference ---------------------
    /// Constructor 
    void FiniteDifference:: Initialize()
@@ -40,12 +43,25 @@ namespace _FDM
       vector<string> key;
       vector<float> keyval;
       
+      geo_grid = new Geometry();
+      geo_grid->GeoRead(file_name);
+#ifdef TEST_OUT  ///TEST 
+
+  string fname = file_name+"_geo.out";
+  os.open(fname.c_str(), ios::trunc);
+  geo_grid->WriteGeoData(os);
+  os.close();
+
+#endif
+
+
+
       string dat_fname = file_name+".dat"; 
       ifstream ins(dat_fname.c_str());
       ic = NULL;
       rrecharge = NULL;
 
-      boundary = GetPolylineByName("boundary");
+      boundary = geo_grid->GetPolylineByName("boundary");
       if(!boundary)
       {
          cout<<"Boundary of the domain is not defined. "<<endl;
@@ -162,30 +178,30 @@ namespace _FDM
             // If more than one ic are needed, removing if(!ic) and put ic to a vector 
             // as BC_Neumann or BC_Dirichlet.
             if(!ic) 
-              ic = new ConditionDataBC(ins);             
+              ic = new ConditionDataBC(ins, geo_grid);             
 
          }
          if(aline.find("neumann")!=string::npos)
          {
-            BC_Neumann.push_back(new ConditionDataBC(ins));
+            BC_Neumann.push_back(new ConditionDataBC(ins, geo_grid));
             BC_Neumann[BC_Neumann.size()-1]->SetGeoEntityType("neumann");
          } 
          if(aline.find("dirichlet")!=string::npos)
          {
-            BC_Dirichlet.push_back(new ConditionDataBC(ins));
+            BC_Dirichlet.push_back(new ConditionDataBC(ins, geo_grid));
             BC_Dirichlet[BC_Dirichlet.size()-1]->SetGeoEntityType("dirichlet");
          }
          if(aline.find("source")!=string::npos||aline.find("sink")!=string::npos)
          {
-            Source_Sink.push_back(new ConditionDataBC(ins));
+            Source_Sink.push_back(new ConditionDataBC(ins, geo_grid));
             Source_Sink[Source_Sink.size()-1]->SetGeoEntityType("source");
          }
 
          if(aline.find("raster")!=string::npos)
-            rrecharge = new RasterRecharge();
+            rrecharge = new RasterRecharge(file_path, file_name);
                   
          if(aline.find("output")!=string::npos)
-            outp.push_back(new Output(ins));
+            outp.push_back(new Output(file_path, file_name, ins, geo_grid));
 
       }
   
@@ -237,6 +253,7 @@ namespace _FDM
       DeleteArray(u0); 
       DeleteArray(u1); 
 
+      delete geo_grid;
    } 
 
 

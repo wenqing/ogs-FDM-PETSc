@@ -13,8 +13,6 @@
 using namespace std;
 using namespace _FDM;
 
-string file_name;
-string file_path;
 
 
 
@@ -22,6 +20,8 @@ int main ( int argc, char *argv[] )
 {
   const int max_size = 1028; 
   char str1[max_size];
+  string file_name;
+  string file_path;
   
 
   if(argc>1) 
@@ -48,8 +48,7 @@ int main ( int argc, char *argv[] )
      file_path = file_name.substr(0,indexChLinux)+"/";
 
 
-  GeoRead();
-  FiniteDifference *fdm = new FiniteDifference();
+  FiniteDifference *fdm = new FiniteDifference(file_path, file_name);
   fdm->Initialize();
   fdm->TimeSteping();
     
@@ -59,10 +58,6 @@ int main ( int argc, char *argv[] )
   fdm->Write(os);
   os.close();
 
-  fname = file_name+"_geo.out";
-  os.open(fname.c_str(), ios::trunc);
-  WriteGeoData(os);
-  os.close();
 
 #endif
 
@@ -72,7 +67,6 @@ int main ( int argc, char *argv[] )
 #endif
 
   delete fdm;
-  GeoReleaseMemory();
 
   time_cpu += clock();
   cout<<"\tCPU time elapsed: "  <<(double)time_cpu / CLOCKS_PER_SEC<<"s"<<endl;

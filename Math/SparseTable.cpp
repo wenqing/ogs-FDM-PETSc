@@ -24,6 +24,7 @@ namespace Math_Group{
 ////PDE related class:
 //using _FDM::Point;
 
+using namespace std;
 
 /*\!
 ********************************************************************
