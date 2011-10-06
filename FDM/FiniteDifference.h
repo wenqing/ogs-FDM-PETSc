@@ -37,7 +37,7 @@ namespace _FDM
    {
       public:
         FiniteDifference(std::string f_path, std::string f_name)
-          : file_path(f_path), file_name(f_name) 		  
+          : file_name(f_name), file_path(f_path) 		  
 		  {}
         ~FiniteDifference();   
 
@@ -140,3 +140,4 @@ namespace _FDM
  
 }
 #endif
+

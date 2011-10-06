@@ -87,7 +87,5 @@ namespace Geometry_Group
 
 }
 
-
-
-
 #endif
+

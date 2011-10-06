@@ -1,12 +1,12 @@
 # Source files
 
 set( Math_SOURCES
-    Matrix.h
-    Matrix.cpp    
-	SparseTable.h
-	SparseTable.cpp
-	SparseMatrix.h
-	SparseMatrix.cpp
+      Matrix.h
+      Matrix.cpp    
+      SparseTable.h
+      SparseTable.cpp
+      SparseMatrix.h
+      SparseMatrix.cpp
 )
 
 include_directories(

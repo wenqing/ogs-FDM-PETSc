@@ -78,8 +78,13 @@ template<class num> void  DeleteVector(std::vector<num*> &a_vec)
 bool CheckComment(std::string& string_line);
 
 /// returns used heap size in bytes or negative if heap is corrupted.
-extern long HeapUsed();
+long HeapUsed();
+
+double ComputeDetTri(const double *x1, const double *x2,
+                                const double *x3);
+
 
 }
 
 #endif
+

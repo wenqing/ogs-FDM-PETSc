@@ -104,25 +104,4 @@ namespace _FDM
    }
 }
 
-/*!
-     Computer area of a triangle
-*/
-double ComputeDetTri(const double *x1, const double *x2,
-                                const double *x3)
-{
-    static double u[3], v[3], z[3];
-    
-    u[0] = x3[0] - x1[0];	
-    u[1] = x3[1] - x1[1];
-    u[2] = x3[2] - x1[2];
 
-    v[0] = x2[0] - x1[0];	
-    v[1] = x2[1] - x1[1];
-    v[2] = x2[2] - x1[2];
- 
-    z[0] = u[1]*v[2] - u[2]*v[1];
-    z[1] = u[2]*v[0] - u[0]*v[2];
-    z[2] = u[0]*v[1] - u[1]*v[0];
-
-    return 0.5*sqrt(z[0]*z[0]+z[1]*z[1]+z[2]*z[2] );   
-} 

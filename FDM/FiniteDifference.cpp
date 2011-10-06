@@ -20,7 +20,7 @@
 
 #include "MatProperty.h"
 #include "ConditionDataBC.h"
-#include "numerics.h"
+#include "Numerics.h"
 #include "SparseMatrix.h"
 #include "LinearEQS.h"
 #include "Polyline.h"

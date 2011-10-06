@@ -34,7 +34,5 @@ namespace _FDM
          std::string prec_name; 
    };
 }
-
-extern double ComputeDetTri(const double *x1, const double *x2,
-                                const double *x3);
 #endif
+

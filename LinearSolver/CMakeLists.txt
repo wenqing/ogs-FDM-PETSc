@@ -16,7 +16,8 @@ include_directories(
 # Create the library
 add_library(LinearSolver STATIC ${LinSolver_SOURCES} )
 
-#target_link_libraries( 
-#	LinearSolver
-#)
+target_link_libraries( 
+  LinearSolver
+  Math
+)
 

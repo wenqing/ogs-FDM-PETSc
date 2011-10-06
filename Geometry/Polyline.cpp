@@ -26,6 +26,7 @@ namespace Geometry_Group
 {
 
    using namespace std;
+   using namespace AuxFunctions;
    /*!
       \fn constructor of class Polyline
       
@@ -134,3 +135,5 @@ namespace Geometry_Group
       return min_dist; 
    } 
 }
+
+
