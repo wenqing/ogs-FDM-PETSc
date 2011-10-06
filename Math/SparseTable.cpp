@@ -17,7 +17,6 @@
 
 ///PDE related classes:
 #include "FiniteDifference.h"
-#include "geo.h"
 
 
 namespace Math_Group{

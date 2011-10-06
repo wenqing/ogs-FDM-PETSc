@@ -9,11 +9,13 @@ Programing:
 #include<vector>
 #include<cmath>
 //
-#include "matrix_class.h"
+#include "Matrix.h"
+#include "SparseMatrix.h"
 
 namespace _FDM{class Numerics; class FiniteDifference;}
 
 //
+
 namespace Math_Group
 {
 /// Using PDE related classes

@@ -18,12 +18,14 @@
 #include <limits>
 
 
-#include "Mat_Property.h"
+#include "MatProperty.h"
 #include "ConditionDataBC.h"
 #include "numerics.h"
 #include "SparseMatrix.h"
 #include "LinearEQS.h"
-#include "out.h"
+#include "Polyline.h"
+#include "Output.h"
+
 
 #include "RasterRecharge.h"
 
@@ -160,22 +162,22 @@ namespace _FDM
             // If more than one ic are needed, removing if(!ic) and put ic to a vector 
             // as BC_Neumann or BC_Dirichlet.
             if(!ic) 
-              ic = new ConditionData(ins);             
+              ic = new ConditionDataBC(ins);             
 
          }
          if(aline.find("neumann")!=string::npos)
          {
-            BC_Neumann.push_back(new ConditionData(ins));
+            BC_Neumann.push_back(new ConditionDataBC(ins));
             BC_Neumann[BC_Neumann.size()-1]->SetGeoEntityType("neumann");
          } 
          if(aline.find("dirichlet")!=string::npos)
          {
-            BC_Dirichlet.push_back(new ConditionData(ins));
+            BC_Dirichlet.push_back(new ConditionDataBC(ins));
             BC_Dirichlet[BC_Dirichlet.size()-1]->SetGeoEntityType("dirichlet");
          }
          if(aline.find("source")!=string::npos||aline.find("sink")!=string::npos)
          {
-            Source_Sink.push_back(new ConditionData(ins));
+            Source_Sink.push_back(new ConditionDataBC(ins));
             Source_Sink[Source_Sink.size()-1]->SetGeoEntityType("source");
          }
 

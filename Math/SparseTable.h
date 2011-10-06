@@ -5,13 +5,14 @@
  Function:   See the declaration below
  Design and programm WW
 ==========================================================================*/
-#ifndef matrix_class_INC
+#ifndef SparseTable_INC
 
-#define matrix_class_INC
+#define SparseTable_INC
 
 #include<iostream>
 #include<fstream>
 
+namespace _FDM {class FiniteDifference;} 
 
 namespace Math_Group{
 
@@ -45,7 +46,6 @@ class SparseTable
       friend class SparseMatrix;
 };
 
-};
 }
 //==========================================================================
 

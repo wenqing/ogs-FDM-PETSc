@@ -17,7 +17,7 @@ namespace _FDM
 {
    
    class FiniteDifference;
-   class ConditionData; 
+   class ConditionDataBC; 
    /*!
      \class  Point
          

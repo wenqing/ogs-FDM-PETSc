@@ -7,8 +7,8 @@
 #include <string>
 #include <time.h>
 
-#include "mat.h"
-#include "geo.h"
+#include "MatProperty.h"
+#include "Polyline.h"
 #include "FiniteDifference.h"
 using namespace std;
 using namespace _FDM;

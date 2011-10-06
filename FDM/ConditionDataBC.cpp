@@ -14,7 +14,8 @@
 #include <sstream>
 #include <vector>
 
-#include "geo.h"
+#include "Point.h"
+#include "Polyline.h"
 
 using namespace std;
 namespace _FDM
@@ -48,6 +49,7 @@ namespace _FDM
               /// polyline name
               ss>>aline; 
               ply = GetPolylineByName(aline);             
+              ss.clear();
            }  
            else if(aline.find("point")!=string::npos)
            {
@@ -57,16 +59,18 @@ namespace _FDM
               /// point ID
               ss>>ID; 
               point = GetPointByID(ID);             
-
+              ss.clear();
            }
-           //else if(aline.find("domain")!=string::npos)
+           else if(aline.find("domain")!=string::npos)
+             ss.clear();
+		     
            else
            {
-              cout<<"Geometry type is nit specified. Please check .dat file"<<endl;
+              ss.clear();
+              cout<<"Geometry type is not specified for this initial condition. Please check .dat file"<<endl;
               exit(1);
            }
 
-           ss.clear();
         } 
         if(aline.find("value")!=string::npos) 
         {

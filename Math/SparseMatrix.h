@@ -12,12 +12,13 @@
 #include<iostream>
 #include<fstream>
 
-
+#include "SparseTable.h"
 
 namespace Math_Group{
 
   using namespace std;
 //
+
 
 //08.2007 WW
 //

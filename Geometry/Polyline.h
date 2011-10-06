@@ -9,19 +9,22 @@
 #ifndef Polyline_INC
 #define Polyline_INC
 
-#include "misc.h"
 #include<iostream>
 #include<fstream>
 #include<cmath>
+
+#include "misc.h"
+#include "GeoEntity.h"
+
 
 namespace _FDM
 {
    
    class FiniteDifference;
-   class ConditionData; 
+   class ConditionDataBC; 
 
    class Point;
-   class Geo_Entity;
+
    /*!
       \class Polyline
           
@@ -44,7 +47,7 @@ namespace _FDM
           vector<Point*> points;
           string name;
           friend class FiniteDifference;
-          friend class ConditionData;           
+          friend class ConditionDataBC;           
     };
    
 }

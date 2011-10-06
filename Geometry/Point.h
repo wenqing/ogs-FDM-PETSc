@@ -9,18 +9,20 @@
 #ifndef geo_INC
 #define geo_INC
 
-#include "misc.h"
 #include<iostream>
 #include<fstream>
 #include<cmath>
+
+#include "misc.h"
+#include "GeoEntity.h"
+
 
 namespace _FDM
 {
    
    class FiniteDifference;
-   class ConditionData; 
+   class ConditionDataBC; 
 
-   class Geo_Entity;
    class Polyline;
 
    /// class Geo_Root;
@@ -78,7 +80,7 @@ namespace _FDM
 
         friend class Polyline;
         friend class FiniteDifference;
-        friend class ConditionData; 
+        friend class ConditionDataBC; 
 
    };
 

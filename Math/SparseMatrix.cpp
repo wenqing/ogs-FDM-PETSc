@@ -15,6 +15,7 @@
 //
 
 #include "SparseTable.h"
+#include "misc.h"
 
 namespace Math_Group{
 

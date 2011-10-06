@@ -14,7 +14,7 @@
 #include <limits>
 #include <cfloat>
 
-#include "numerics.h"
+#include "Numerics.h"
 #include "misc.h"
 
 #include "GeoEntity.h"

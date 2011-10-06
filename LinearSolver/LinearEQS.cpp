@@ -14,7 +14,8 @@ Programing:
 #include <cfloat>
 #include <time.h>
 
-#include"numerics.h"
+#include"Numerics.h"
+#include"Matrix.h"
 
 //
 namespace Math_Group

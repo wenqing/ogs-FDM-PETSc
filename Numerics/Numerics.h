@@ -1,7 +1,8 @@
 #ifndef numerics_INC
 #define numerics_INC
 #include<iostream>
-#include "misc.h"
+
+#include "Common\misc.h"
 
 namespace _FDM
 {

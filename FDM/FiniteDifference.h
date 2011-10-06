@@ -3,8 +3,7 @@
 
 #include<iostream>
 
-#include "misc.h"
-#include "geo.h"
+#include "Point.h"
 
 /*!
  \class  FiniteDifference
@@ -21,9 +20,8 @@ class RasterRecharge;
 namespace _FDM
 {
    class Mat_Property;
-   class Point;
    class Polyline; 
-   class ConditionData;
+   class ConditionDataBC;
    class Numerics;
    class Output;
 
@@ -84,11 +82,11 @@ namespace _FDM
         Numerics *num; 
 
         /// Boundary Condition
-        vector<ConditionData*> BC_Neumann; 
-        vector<ConditionData*> BC_Dirichlet; 
-        vector<ConditionData*> Source_Sink; 
+        vector<ConditionDataBC*> BC_Neumann; 
+        vector<ConditionDataBC*> BC_Dirichlet; 
+        vector<ConditionDataBC*> Source_Sink; 
         vector<long> BC_Dirichlet_points; 
-        ConditionData *ic;
+        ConditionDataBC *ic;
          
         /// Source term
         RasterRecharge *rrecharge;
@@ -127,7 +125,7 @@ namespace _FDM
         
         void Output_Domain_VTK(ostream &os);
 
-        friend class ConditionData; 
+        friend class ConditionDataBC; 
         friend class Math_Group::SparseTable; 
 
    };
