@@ -71,7 +71,7 @@ namespace _FDM
               ss>>aline;
               ss>>aline;  
               ss.clear();
-              Polyline *ply = geometry->GetPolylineByName(aline);       
+              Polyline *ply = geometry->getPolylineByName(aline);       
 
               fname = file_name +"_ply" + ply->Name();
               geo_entity = ply;  
@@ -86,7 +86,7 @@ namespace _FDM
               ss>>ID; 
               ss.clear();
 
-              geo_entity = geometry->GetPointByID(ID); 
+              geo_entity = geometry->getPointByID(ID); 
               ss<<ID; 
               fname = file_name +"_point" + ss.str();
               ss.clear();

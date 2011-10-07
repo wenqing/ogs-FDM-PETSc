@@ -65,9 +65,9 @@ SparseTable::SparseTable(FiniteDifference *fdm)
    {
       num_column_entries[i] = (long)A_index.size();
  
-      for(j=0; j<fdm->grid_point_in_use[i]->GetNumNeighborPoints(); j++)
+      for(j=0; j<fdm->grid_point_in_use[i]->getNumNeighborPoints(); j++)
       {
-         col_index = fdm->grid_point_in_use[i]->GetNeighborIndex(j);
+         col_index = fdm->grid_point_in_use[i]->getNeighborIndex(j);
                         
          if(i == col_index)
             diag_entry[i] = (long)A_index.size();

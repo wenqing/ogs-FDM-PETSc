@@ -26,8 +26,8 @@ class Geometry
 
       void GeoRead(std::string file_name); 
       void GeoReleaseMemory(); 
-      Polyline *GetPolylineByName(std::string name); 
-      Point *GetPointByID(long ID); 
+      Polyline *getPolylineByName(std::string name); 
+      Point *getPointByID(long ID); 
       void WriteGeoData(std::ostream &os = std::cout);  
   
    private:

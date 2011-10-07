@@ -63,7 +63,7 @@ namespace _FDM
       ic = NULL;
       rrecharge = NULL;
 
-      boundary = geo_grid->GetPolylineByName("boundary");
+      boundary = geo_grid->getPolylineByName("boundary");
       if(!boundary)
       {
          cout<<"Boundary of the domain is not defined. "<<endl;
@@ -186,17 +186,17 @@ namespace _FDM
          if(aline.find("neumann")!=string::npos)
          {
             BC_Neumann.push_back(new ConditionDataBC(ins, geo_grid));
-            BC_Neumann[BC_Neumann.size()-1]->SetGeoEntityType("neumann");
+            BC_Neumann[BC_Neumann.size()-1]->setGeoEntityType("neumann");
          } 
          if(aline.find("dirichlet")!=string::npos)
          {
             BC_Dirichlet.push_back(new ConditionDataBC(ins, geo_grid));
-            BC_Dirichlet[BC_Dirichlet.size()-1]->SetGeoEntityType("dirichlet");
+            BC_Dirichlet[BC_Dirichlet.size()-1]->setGeoEntityType("dirichlet");
          }
          if(aline.find("source")!=string::npos||aline.find("sink")!=string::npos)
          {
             Source_Sink.push_back(new ConditionDataBC(ins, geo_grid));
-            Source_Sink[Source_Sink.size()-1]->SetGeoEntityType("source");
+            Source_Sink[Source_Sink.size()-1]->setGeoEntityType("source");
          }
 
          if(aline.find("raster")!=string::npos)
@@ -712,7 +712,7 @@ namespace _FDM
     } 
     //---------------------------------
     /*!
-       \fn inline bool CheckDirichletBC(Point *pnt)
+       \fn bool CheckDirichletBC(Point *pnt)
        
        Determine whether a grid point on the boundary is
        assigned with the Dirichlet boundary by geometry
@@ -730,7 +730,7 @@ namespace _FDM
         bc_pnt = NULL;
         for(i=0; i<(int)BC_Dirichlet.size(); i++)
         {
-           bc_pnt = BC_Dirichlet[i]->GetClosedPoint(pnt, cell_size);
+           bc_pnt = BC_Dirichlet[i]->getClosedPoint(pnt, cell_size);
            if(bc_pnt)
              bc_pnt->value = BC_Dirichlet[i]->value;
         }
@@ -751,7 +751,7 @@ namespace _FDM
 
     //---------------------------------
     /*!
-       \fn inline void CheckNeumannBC(Point *pnt)
+       \fn void CheckNeumannBC(Point *pnt)
        
        Determine whether a grid point on the boundary is
        assigned with the Neumann boundary by geometry
@@ -769,7 +769,7 @@ namespace _FDM
 
         for(i=0; i<(int)BC_Neumann.size(); i++)
         {
-           bc_pnt = BC_Neumann[i]->GetClosedPoint(pnt, cell_size);
+           bc_pnt = BC_Neumann[i]->getClosedPoint(pnt, cell_size);
            if(bc_pnt)
              bc_pnt->value = BC_Neumann[i]->value;
         }
@@ -783,7 +783,7 @@ namespace _FDM
     }
     //---------------------------------
     /*!
-       \fn inline void CheckSourceSink(Point *pnt)
+       \fn void CheckSourceSink(Point *pnt)
        
        Determine whether a grid point is
        assigned with the source/sink term by geometry
@@ -801,7 +801,7 @@ namespace _FDM
 
         for(i=0; i<(int)Source_Sink.size(); i++)
         {
-           bc_pnt = Source_Sink[i]->GetClosedPoint(pnt, cell_size);
+           bc_pnt = Source_Sink[i]->getClosedPoint(pnt, cell_size);
            if(bc_pnt)
              bc_pnt->value = Source_Sink[i]->value;
         }
@@ -924,31 +924,31 @@ namespace _FDM
              switch(pnt->point_type)
              {
                 case nm_11:
-                  SetBC_at_PointOnLine(i, pnt, E);
+                  setBC_at_PointOnLine(i, pnt, E);
                   break;
                 case nm_12:
-                  SetBC_at_PointOnLine(i, pnt, W);
+                  setBC_at_PointOnLine(i, pnt, W);
                   break;
                 case nm_13:
-                  SetBC_at_PointOnLine(i, pnt, S);
+                  setBC_at_PointOnLine(i, pnt, S);
                   break;                 
                 case nm_14:
-                  SetBC_at_PointOnLine(i, pnt, N);
+                  setBC_at_PointOnLine(i, pnt, N);
                   break;                 
                 case nm_21:
-                  SetBC_at_Point_atCCorner(i, pnt);
+                  setBC_at_Point_atCCorner(i, pnt);
                   break;
                 case nm_22:
-                  SetBC_at_Point_atCCorner(i, pnt);
+                  setBC_at_Point_atCCorner(i, pnt);
                   break;
                 case nm_23:
-                  SetBC_at_Point_atCCorner(i, pnt);
+                  setBC_at_Point_atCCorner(i, pnt);
                   break;
                 case nm_24:
-                  SetBC_at_Point_atCCorner(i, pnt);
+                  setBC_at_Point_atCCorner(i, pnt);
                   break;
                 //case border:
-                //  SetBC_at_Point_atCCorner(i, pnt, N);
+                //  setBC_at_Point_atCCorner(i, pnt, N);
                 //  break;
                 default:
                   break; 
@@ -966,11 +966,11 @@ namespace _FDM
       os_m.close();
 
 #endif 
-      /// Set Dirichlet BC
+      /// set Dirichlet BC
       for(i=0; i<(long)BC_Dirichlet_points.size(); i++) 
       {
           l =  BC_Dirichlet_points[i];
-          eqs->SetKnownX_i(l, grid_point_in_use[l]->value); 
+          eqs->setKnownX_i(l, grid_point_in_use[l]->value); 
       } 
 
 #ifdef TEST
@@ -986,15 +986,15 @@ namespace _FDM
 
 //----------------------------------------------------------
    /*!
-      \fn void FiniteDifference::SetBC_at_PointOnLine(Point *pnt)
+      \fn void FiniteDifference::setBC_at_PointOnLine(Point *pnt)
 
-       Set Dirichlet and Neumann BC for a point, which is on
+       set Dirichlet and Neumann BC for a point, which is on
        a straight line.
        
        04.2011 WW
        
    */
-   void FiniteDifference::SetBC_at_PointOnLine(long i, Point *pnt, NeighborPoint_Type nbt)
+   void FiniteDifference::setBC_at_PointOnLine(long i, Point *pnt, NeighborPoint_Type nbt)
    {
       int k;
       SparseMatrix *A = eqs->A;
@@ -1040,16 +1040,16 @@ namespace _FDM
 
 //----------------------------------------------------------
    /*!
-      \fn void FiniteDifference::SetBC_at_PointOnLine(Point *pnt)
+      \fn void FiniteDifference::setBC_at_PointOnLine(Point *pnt)
 
-       Set Dirichlet and Neumann BC for a point, which is at
+       set Dirichlet and Neumann BC for a point, which is at
        a convex corner.
        
        04.2011 WW
        
    */
-  // void FiniteDifference::SetBC_at_Point_atCCorner(long i, Point *pnt, NeighborPoint_Type nbt)
-  void FiniteDifference::SetBC_at_Point_atCCorner(long i, Point *pnt)
+  // void FiniteDifference::setBC_at_Point_atCCorner(long i, Point *pnt, NeighborPoint_Type nbt)
+  void FiniteDifference::setBC_at_Point_atCCorner(long i, Point *pnt)
   {
       int k;
       SparseMatrix *A = eqs->A;

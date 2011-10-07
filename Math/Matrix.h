@@ -45,7 +45,7 @@ class Matrix
      void operator += (const Matrix& m);
      void operator -= (const Matrix& m);
 
-     void GetTranspose(Matrix& m);
+     void getTranspose(Matrix& m);
 
 	 // vec_result = This*vec. vec_result must be initialized
      void multi(const double *vec, double *vec_result, const double fac=1.0);

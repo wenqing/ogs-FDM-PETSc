@@ -24,9 +24,9 @@ namespace _FDM
 
          void Write(std::ostream &os = std::cout);
 
-         void SetGeoEntityType(std::string type_name);
+         void setGeoEntityType(std::string type_name);
 
-         Geometry_Group::Point* GetClosedPoint(const Geometry_Group::Point *pnt, const double tol);
+         Geometry_Group::Point* getClosedPoint(const Geometry_Group::Point *pnt, const double tol);
        private:
 
 

@@ -124,12 +124,12 @@ namespace _FDM
         std::string file_name; 
         std::string file_path; 
 
-        /// Set Dirichlet boundary condition
+        /// set Dirichlet boundary condition
         bool CheckDirichletBC(Point *pnt);
         void CheckNuemannBC(Point *pnt);
         void CheckSourceSink(Point *pnt);
-		void SetBC_at_PointOnLine(long i, Point *pnt, Geometry_Group::NeighborPoint_Type nbt);
-        void SetBC_at_Point_atCCorner(long i, Point *pnt);
+		void setBC_at_PointOnLine(long i, Point *pnt, Geometry_Group::NeighborPoint_Type nbt);
+        void setBC_at_Point_atCCorner(long i, Point *pnt);
         
 		void Output_Domain_VTK(std::ostream &os);
 

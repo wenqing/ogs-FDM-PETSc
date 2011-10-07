@@ -65,8 +65,8 @@ class Linear_EQS
     void Clean(); 
     //
     // Access to the members
-    void SetDOF(const int dof_n) {A->SetDOF(dof_n);} // For different processes with different DOF of OPDE. _new. 10/2008. WW
-    void SetKnownX_i(const long i, const double x_i);
+    void setDOF(const int dof_n) {A->setDOF(dof_n);} // For different processes with different DOF of OPDE. _new. 10/2008. WW
+    void setKnownX_i(const long i, const double x_i);
     double X(const long i) const {return x[i];} 
     double RHS(const long i) const {return b[i];} 
     double NormX();
@@ -88,9 +88,9 @@ class Linear_EQS
     /// GMRES H matrix     
     mutable Matrix H;
     int m_gmres; /// number of columns of H matrix
-    inline void Update(double *x, int k, Matrix &h, double *s);
-    inline void Get_Plane_Rotation(double &dx, double &dy, double &cs, double &sn);
-    inline void Set_Plane_Rotation(double &dx, double &dy, double &cs, double &sn);
+    void Update(double *x, int k, Matrix &h, double *s);
+    void get_Plane_Rotation(double &dx, double &dy, double &cs, double &sn);
+    void set_Plane_Rotation(double &dx, double &dy, double &cs, double &sn);
     //
 
     // 
@@ -107,8 +107,8 @@ class Linear_EQS
     long size_global;
     // Operators
     double dot (const double *xx,  const double *yy); 
-    inline double Norm(const double *xx)  { return sqrt(dot(xx, xx)); }
-    inline bool CheckNormRHS(const double normb_new);
+    double Norm(const double *xx)  { return sqrt(dot(xx, xx)); }
+    bool CheckNormRHS(const double normb_new);
     //
     void Message();
 

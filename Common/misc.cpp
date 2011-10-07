@@ -155,7 +155,7 @@ long HeapUsed()
 #endif
 
 /*!
-   \fn  inline bool CheckComment(string& string_line)
+   \fn  bool CheckComment(string& string_line)
 
    Check whether string_line is a comment or contains comment 
 

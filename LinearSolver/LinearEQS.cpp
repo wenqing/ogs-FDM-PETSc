@@ -90,10 +90,10 @@ void Linear_EQS::ConfigNumerics(Numerics *num, const long n)
   i = n; 
  
   /// PDE related
-  precond_type = num->GetPrecType();
-  solver_type =  num->GetType();
-  max_iter = num->GetMax_Iteration();
-  tol = num->GetTolerance();
+  precond_type = num->getPrecType();
+  solver_type =  num->getType();
+  max_iter = num->getMax_Iteration();
+  tol = num->getTolerance();
 
   switch(solver_type)
   {
@@ -138,7 +138,7 @@ void Linear_EQS::ConfigNumerics(Numerics *num, const long n)
       solver_name = "UMF"; 
     case 13:   // 06.2010. WW
       solver_name = "GMRES"; 
-      m_gmres = num->GetSub_Dim();
+      m_gmres = num->getSub_Dim();
       for(i=0; i<4; i++) 
       {
          double *new_array = new double[m_gmres+1];
@@ -240,7 +240,7 @@ void Linear_EQS::Write(ostream &os)
 void Linear_EQS::Write_BIN(ostream &os)   
 {
  
-  if((A->GetStorageType() != CRS )||(!A))
+  if((A->getStorageType() != CRS )||(!A))
     return;
    
   A->Write_BIN(os);  
@@ -327,13 +327,13 @@ void Linear_EQS::ComputePreconditioner()
   }
 }
 /**************************************************************************
-Task: Linear equation::SetKnownXi
+Task: Linear equation::setKnownXi
       Configure equation system when one entry of the vector of 
       unknown is given 
 Programing:
 10/2007 WW/
 **************************************************************************/
-void Linear_EQS::SetKnownX_i(const long i, const double x_i)
+void Linear_EQS::setKnownX_i(const long i, const double x_i)
 {
    A->Diagonize(i, x_i, b);  
 }
@@ -441,7 +441,7 @@ void Linear_EQS::Message()
    Programm:  
    09/2007 WW
 ********************************************************************/
-inline bool Linear_EQS::CheckNormRHS(const double normb_new)
+bool Linear_EQS::CheckNormRHS(const double normb_new)
 {
   if(bNorm>DBL_EPSILON)
   {
@@ -904,7 +904,7 @@ int Linear_EQS::CGS()
 */
 //-----------------------------------------------------------------
 /// For GMRES
-inline void Linear_EQS::Get_Plane_Rotation(double &dx, double &dy, double &cs, double &sn)
+void Linear_EQS::get_Plane_Rotation(double &dx, double &dy, double &cs, double &sn)
 {  
    if (dy == 0.0) 
    {
@@ -926,7 +926,7 @@ inline void Linear_EQS::Get_Plane_Rotation(double &dx, double &dy, double &cs, d
 }
 
 /// For GMRES. 
-inline void Linear_EQS::Set_Plane_Rotation(double &dx, double &dy, double &cs, double &sn)
+void Linear_EQS::set_Plane_Rotation(double &dx, double &dy, double &cs, double &sn)
 {
     double temp  =  cs * dx + sn * dy;
     dy = -sn * dx + cs * dy;
@@ -934,7 +934,7 @@ inline void Linear_EQS::Set_Plane_Rotation(double &dx, double &dy, double &cs, d
 }
 
 /// Update solution in GMRES
-inline void Linear_EQS::Update(double *x, int k, Matrix &h, double *s)
+void Linear_EQS::Update(double *x, int k, Matrix &h, double *s)
 {
   long i;
   long m, j;
@@ -1049,11 +1049,11 @@ int Linear_EQS::GMRES()
            v_k[l] = w[l] / H(i+1, i); 
 
         for (k = 0; k < i; k++)
-          Set_Plane_Rotation(H(k,i), H(k+1,i), cs[k], sn[k]);
+          set_Plane_Rotation(H(k,i), H(k+1,i), cs[k], sn[k]);
       
-        Get_Plane_Rotation(H(i,i), H(i+1,i), cs[i], sn[i]);
-        Set_Plane_Rotation(H(i,i), H(i+1,i), cs[i], sn[i]);
-        Set_Plane_Rotation(s[i], s[i+1], cs[i], sn[i]);
+        get_Plane_Rotation(H(i,i), H(i+1,i), cs[i], sn[i]);
+        set_Plane_Rotation(H(i,i), H(i+1,i), cs[i], sn[i]);
+        set_Plane_Rotation(s[i], s[i+1], cs[i], sn[i]);
       
         if ((error = fabs(s[i+1]) / normb) < tol)
         {

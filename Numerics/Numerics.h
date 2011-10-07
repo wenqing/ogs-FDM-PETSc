@@ -14,11 +14,11 @@ namespace _FDM
 
 		 void Write(std::ostream &os = std::cout);
 
-         int GetType() const {return type;}
-         int GetPrecType() const {return prec_type;}
-         int GetSub_Dim() const {return sub_dim;}
-         int GetMax_Iteration() const {return max_ite;}
-         double GetTolerance() const {return tol;}
+         int getType() const {return type;}
+         int getPrecType() const {return prec_type;}
+         int getSub_Dim() const {return sub_dim;}
+         int getMax_Iteration() const {return max_ite;}
+         double getTolerance() const {return tol;}
 
        private:
 

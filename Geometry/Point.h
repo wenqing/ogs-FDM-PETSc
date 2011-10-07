@@ -47,7 +47,7 @@ namespace Geometry_Group
 
         float X() const {return coordinates[0];}
         float Y() const {return coordinates[1];}
-        real GetDistanceTo(const Point *a_p)
+        real getDistanceTo(const Point *a_p)
            {
               float *a_coord = a_p->coordinates; 
               return sqrt((coordinates[0]-a_coord[0])
@@ -59,8 +59,8 @@ namespace Geometry_Group
 		void Write(std::ostream &os = std::cout);
 		void Write_VTK(std::ostream &os = std::cout);
         long Index() const {return index;}
-        long GetNeighborIndex(const int ii) const {return neighbor_points[ii]; } 
-        long GetNumNeighborPoints() const {return (long)neighbor_points.size(); } 
+        long getNeighborIndex(const int ii) const {return neighbor_points[ii]; } 
+        long getNumNeighborPoints() const {return (long)neighbor_points.size(); } 
         
 
       private:

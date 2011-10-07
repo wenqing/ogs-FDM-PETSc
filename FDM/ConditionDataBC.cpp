@@ -53,7 +53,7 @@ namespace _FDM
               ss>>aline;
               /// polyline name
               ss>>aline; 
-              ply = geo->GetPolylineByName(aline);             
+              ply = geo->getPolylineByName(aline);             
               ss.clear();
            }  
            else if(aline.find("point")!=string::npos)
@@ -63,7 +63,7 @@ namespace _FDM
               ss>>aline;
               /// point ID
               ss>>ID; 
-              point = geo->GetPointByID(ID);             
+              point = geo->getPointByID(ID);             
               ss.clear();
            }
            else if(aline.find("domain")!=string::npos)
@@ -91,14 +91,14 @@ namespace _FDM
  
    //--------------------------------------------------
    /*!
-   \fn  Point* ConditionDataBC::GetClosedPoint(Point *pnt)
+   \fn  Point* ConditionDataBC::getClosedPoint(Point *pnt)
       
       For a given point pnt, find a closed point of geometry
       entity
       
       04.2011. WW
    */
-   Point* ConditionDataBC::GetClosedPoint(const Point *pnt, const double tol)
+   Point* ConditionDataBC::getClosedPoint(const Point *pnt, const double tol)
    {
       Point *bc_pnt;
  
@@ -114,7 +114,7 @@ namespace _FDM
 
       else if(point)
       {
-         dist = point->GetDistanceTo(pnt);
+         dist = point->getDistanceTo(pnt);
          if(dist<min_dist)
          {
             min_dist = dist;
@@ -142,7 +142,7 @@ namespace _FDM
    }
 
    /// As the funtion name
-   void ConditionDataBC::SetGeoEntityType(string type_name)
+   void ConditionDataBC::setGeoEntityType(string type_name)
    {
        BC_Type pnt_bc_type;
        if(type_name.find("neumann")!=string::npos)

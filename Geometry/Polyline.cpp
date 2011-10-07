@@ -47,7 +47,7 @@ namespace Geometry_Group
          ss>> id ;
          ss.clear();
 
-         points.push_back(geo->GetPointByID(id)); 
+         points.push_back(geo->getPointByID(id)); 
       }
          
    }
@@ -128,7 +128,7 @@ namespace Geometry_Group
             b[j] = points[0]->coordinates[j];
             c[j] = points[1]->coordinates[j];
          }
-         dist = 2.0*ComputeDetTri(a,b,c)/points[0]->GetDistanceTo(points[1]);
+         dist = 2.0*ComputeDetTri(a,b,c)/points[0]->getDistanceTo(points[1]);
          if(dist<min_dist)
            min_dist = dist;
       }

@@ -87,13 +87,13 @@ void Geometry::GeoRead(string file_name)
 } 
 
 /*!
-    \fn Polyline *GetPolylineByName(string name); 
+    \fn Polyline *getPolylineByName(string name); 
    
      Find a polyline by name 
       
      04.2011. WW 
 */
-Polyline *Geometry::GetPolylineByName(string name)
+Polyline *Geometry::getPolylineByName(string name)
 {
    int i;
   
@@ -107,14 +107,14 @@ Polyline *Geometry::GetPolylineByName(string name)
    return NULL;
 }
 /*!
-    \fn FDM::Point *GetPointByID(long ID); 
+    \fn FDM::Point *getPointByID(long ID); 
    
      Find a polyline by name 
       
      04.2011. WW 
 */
 
-Point *Geometry::GetPointByID(long ID)
+Point *Geometry::getPointByID(long ID)
 {
    int i;
   

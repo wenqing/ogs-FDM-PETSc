@@ -595,7 +595,7 @@ void SparseMatrix::Trans_MultiVec(double *vec_s, double *vec_r)
 //
 /*\!
 ********************************************************************
-   Set
+   set
         A(ii,ii) = x_i, 
         A(ii, j) = 0., j!=ii
         A(i, ii) = 0., i!=ii

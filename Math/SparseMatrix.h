@@ -47,9 +47,9 @@ class SparseMatrix
      //
      long Dim() const {return DOF*rows;}
      int Dof() const {return DOF;}
-     void SetDOF(const int dof_n) {DOF = dof_n;} //_new. 10/2008. WW
+     void setDOF(const int dof_n) {DOF = dof_n;} //_new. 10/2008. WW
      long Size() const {return rows;}
-     StorageType GetStorageType() const {return storage_type;}
+     StorageType getStorageType() const {return storage_type;}
 
      // Print
      void Write(std::ostream &os=std::cout);   
