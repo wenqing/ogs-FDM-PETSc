@@ -60,14 +60,16 @@ SparseTable::SparseTable(FiniteDifference *fdm)
 
    vector<long> A_index;
    long col_index;
+   Geometry_Group::Point *a_pnt;
 
    for(i=0; i<rows; i++)
    {
       num_column_entries[i] = (long)A_index.size();
  
-      for(j=0; j<fdm->grid_point_in_use[i]->getNumNeighborPoints(); j++)
+      a_pnt = fdm->grid_point_in_use[i];
+      for(j=0; j<a_pnt->getNumNeighborPoints(); j++)
       {
-         col_index = fdm->grid_point_in_use[i]->getNeighborIndex(j);
+         col_index = a_pnt->getNeighborIndex(j);
                         
          if(i == col_index)
             diag_entry[i] = (long)A_index.size();
