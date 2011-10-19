@@ -39,5 +39,10 @@ Geometry
 LinearSolver
 Common
 Numerics
-)
+
+)     
+
+IF(USE_PETSC)
+target_link_libraries(${PROJECT_NAME}  ${PETSC_LIBRARIES})
+ENDIF(USE_PETSC)
 

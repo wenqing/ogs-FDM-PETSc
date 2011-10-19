@@ -7,6 +7,11 @@
 #include <string>
 #include <time.h>
 
+#ifdef USE_PETSC
+#include "petscksp.h"
+#endif
+
+
 #include "MatProperty.h"
 #include "Polyline.h"
 #include "FiniteDifference.h"
@@ -18,6 +23,8 @@ using namespace _FDM;
 
 int main ( int argc, char *argv[] )
 {
+
+
   const int max_size = 1028; 
   char str1[max_size];
   string file_name;
@@ -33,6 +40,16 @@ int main ( int argc, char *argv[] )
      cout<<"\tInput file name (without extension): ";
      scanf("%s%*[^\n]%*c",str1);
   }
+
+
+#ifdef USE_PETSC
+
+  char help[] = "FDM with PETSc \n";
+  //PetscInitialize(argc, argv, help);
+  PetscInitialize(&argc,&argv,(char *)0,help);
+#endif
+
+
   clock_t time_cpu;
   time_cpu = -clock();
 
@@ -72,6 +89,13 @@ int main ( int argc, char *argv[] )
 
   time_cpu += clock();
   cout<<"\tCPU time elapsed: "  <<(double)time_cpu / CLOCKS_PER_SEC<<"s"<<endl;
+
+
+#ifdef USE_PETSC
+
+   PetscFinalize();
+#endif
+
 
   return 0;
 }
