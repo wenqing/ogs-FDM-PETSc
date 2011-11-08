@@ -3,6 +3,10 @@
 
 #include<iostream>
 
+#ifdef USE_PETSC
+#include "PETScLinearSolver.h"
+#endif
+
 #include "Point.h"
 
 /*!
@@ -32,22 +36,35 @@ namespace _FDM
    using Geometry_Group::Point;
    using Geometry_Group::Polyline;
 
+
 //--------------- class  FiniteDifference ---------------------
    class FiniteDifference 
    {
       public:
         FiniteDifference(std::string f_path, std::string f_name)
-          : file_name(f_name), file_path(f_path) 		  
-		  {}
+          : eqs(NULL),geo_grid(NULL),mat(NULL), num(NULL), ic(NULL),
+            rrecharge(NULL),  boundary(NULL),
+            file_name(f_name), file_path(f_path) 		  
+		  {  }
         ~FiniteDifference();   
-
+	
         void Initialize();
+        
         void TimeSteping(); 
         void AssembleEQS(); 
 
         void Output_Results(const float c_tim, const int i_step);
-		void Write(std::ostream &os = std::cout);
+        void Write(std::ostream &os = std::cout);
+        
         void WriteGrid_VTK();
+
+#ifdef USE_PETSC
+        void set_MPI_rank_size(const int rank, const int size)
+        {
+           size_MPI = size;
+           rank_MPI = rank;  
+        } 
+#endif
 
       private:
 
@@ -55,10 +72,15 @@ namespace _FDM
         double *u0;
         double *u1;
 
+#ifdef USE_PETSC
+        int size_MPI;
+        int rank_MPI;
+        PETScLinearSolver *eqs;
+#else
         /// EQS
         SparseTable *sp; 
         Linear_EQS *eqs;
-
+#endif
 
         /// Data for geometry and grid
         long nrows;
@@ -131,7 +153,7 @@ namespace _FDM
 		void setBC_at_PointOnLine(long i, Point *pnt, Geometry_Group::NeighborPoint_Type nbt);
         void setBC_at_Point_atCCorner(long i, Point *pnt);
         
-		void Output_Domain_VTK(std::ostream &os);
+        void Output_Domain_VTK(std::ostream &os);
 
         friend class ConditionDataBC; 
         friend class Math_Group::SparseTable; 

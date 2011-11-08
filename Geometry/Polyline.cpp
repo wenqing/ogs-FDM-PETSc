@@ -96,7 +96,7 @@ namespace Geometry_Group
          xj =  pnt_j->X();
          yj =  pnt_j->Y();
 
-         if ( yi<y && yj>=y || yj<y && yi>=y) 
+         if (( (yi<y) && (yj>=y) )||( (yj<y) && (yi>=y)) ) 
          {
             if (xi+(y-yi)/(yj-yi)*(xj-xi)<x)
             {

@@ -632,7 +632,7 @@ void SparseMatrix::Diagonize(const long idiag, const double b_given, double *b)
      /// Clean column id                
      for (i = 0; i < rows; i++)
      {
-		 j = AuxFunctions::binarySearch(entry_column, id, num_column_entries[i], num_column_entries[i+1]); 
+        j = AuxFunctions::binarySearch(entry_column, id, num_column_entries[i], num_column_entries[i+1]); 
         if(j == -1)
            continue;
         j0=entry_column[j];

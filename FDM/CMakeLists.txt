@@ -18,9 +18,9 @@ include_directories(
 	../Math 
 	../Numerics 
 	../Geometry 
-    ../LinearSolver  
-    ../Common   
-    ../Numerics   
+	../LinearSolver  
+	../Common   
+	../Numerics   
 )
 
 
@@ -32,17 +32,26 @@ add_library(FDM STATIC ${FDM_SOURCES} )
 add_executable(${PROJECT_NAME} main.cpp)
 
 
-target_link_libraries(${PROJECT_NAME} 
-FDM
-Math
-Geometry	
-LinearSolver
-Common
-Numerics
-
-)     
 
 IF(USE_PETSC)
-target_link_libraries(${PROJECT_NAME}  ${PETSC_LIBRARIES})
+	target_link_libraries(${PROJECT_NAME} 
+		FDM
+		Geometry	
+		LinearSolver
+		Common
+		Numerics
+	)
+     target_link_libraries(${PROJECT_NAME}  ${PETSC_LIBRARIES})
+ELSE (USE_PETSC)
+	target_link_libraries(${PROJECT_NAME} 
+		FDM
+		Math
+		Geometry	
+		LinearSolver
+		Common
+		Numerics
+	)
 ENDIF(USE_PETSC)
+
+
 

@@ -37,6 +37,7 @@ namespace Geometry_Group
            coordinates[0] = x;
            coordinates[1] = y;
            coordinates[2] = 0.;
+           value = 0.;
            point_type = none;
         }
         

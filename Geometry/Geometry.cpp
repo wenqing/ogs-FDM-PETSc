@@ -12,6 +12,7 @@
 #include <sstream>
 #include <limits>
 #include <cfloat>
+#include <cstdlib>
 
 #include "Numerics.h"
 #include "misc.h"

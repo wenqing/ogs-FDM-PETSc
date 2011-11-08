@@ -15,7 +15,9 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include <limits>
+#include <climits>
+#include <cstdlib>
+//##include <cstdlib>
 
 
 #include "MatProperty.h"
@@ -37,6 +39,35 @@ namespace _FDM
 
    using namespace Geometry_Group;
    using namespace AuxFunctions;
+
+
+//----------------------------------------------------------
+   /// Destructor
+   FiniteDifference::~FiniteDifference()   
+   {
+      delete mat;
+      delete num;
+#ifndef USE_PETSC
+      delete sp;
+#endif
+      delete eqs;
+      if(ic) delete ic;
+
+      if(rrecharge) delete rrecharge;
+      
+      DeleteVector(BC_Neumann); 
+      DeleteVector(BC_Dirichlet); 
+      DeleteVector(grid_point_in_use);
+      DeleteVector(outp);
+      
+
+      DeleteArray(u0); 
+      DeleteArray(u1); 
+
+      delete geo_grid;
+      
+   } 
+
 
 //--------------- class  FiniteDifference ---------------------
    /// Constructor 
@@ -210,14 +241,23 @@ namespace _FDM
      
       cout<<">> Build grid data."<<endl;
       CaterogorizeGridPoint();
+      /// Initialize solution arrays;
+      long size = (long)grid_point_in_use.size();
 
       /// Generate a linear solver
+
+#ifdef USE_PETSC
+      eqs = new PETScLinearSolver(size, 1.e-8);
+      eqs->Init();
+      eqs->set_rank_size(rank_MPI, size_MPI);
+      eqs->Config();
+      
+#else
       sp = new SparseTable(this);
       eqs = new Linear_EQS(*sp, 1); 
       //sp->Write();
+#endif
 
-      /// Initialize solution arrays;
-      long size = (long)grid_point_in_use.size();
       u0 = new real[size];      
       u1 = new real[size];      
 
@@ -229,86 +269,23 @@ namespace _FDM
       }
 
       cout<<">> Write grid."<<endl;
+#ifdef USE_PETSC
+          int rank;
+          MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+          if(rank == 0) 
+#endif
       WriteGrid_VTK();
      
+
+
+#ifdef USE_PETSC
+          MPI_Barrier(PETSC_COMM_WORLD);
+#endif
+
+
    }
    
 
-//----------------------------------------------------------
-   /// Destructor
-   FiniteDifference::~FiniteDifference()   
-   {
-      delete mat;
-      delete num;
-      delete sp;
-      delete eqs;
-      delete ic;
-
-      if(rrecharge) delete rrecharge;
-
-      DeleteVector(BC_Neumann); 
-      DeleteVector(BC_Dirichlet); 
-      DeleteVector(grid_point_in_use);
-      DeleteVector(outp);
-      
-
-      DeleteArray(u0); 
-      DeleteArray(u1); 
-
-      delete geo_grid;
-   } 
-
-
-//----------------------------------------------------------
-   /*!
-      \fn FiniteDifference::Write(ostream &os = cout)
-
-       Output all paramters of the FDM
-       
-       04.2011 WW
-       
-   */
-   void FiniteDifference::Write(ostream &os)
-   {
-       mat->Write(os);
-       num->Write(os);   
-
-       /// Data for geometry and grid
-       os<<"--- Grid"<<endl;
-       os<<"\t ncols:    \t"<< nrows  <<endl;
-       os<<"\t nrows:    \t"<< ncols  <<endl;
-       os<<"\t xllcorner:\t"<< xll0   <<endl;
-       os<<"\t yllcorner:\t"<< yll0   <<endl;
-       os<<"\t cellsize: \t"<< cell_size <<endl<<endl;
-
-       /// Time step
-       os<<"--- Time ("<<time_unit<<")"<<endl;
-       os<<"\t start_time:\t"<<T0<<endl;
-       os<<"\t end_time:\t"<<T1<<endl;
-       os<<"\t step_size:\t"<<dt<<endl<<endl;
-
-       os<<"--- Initial condition"<<endl; 
-       ic->Write(os);
-
-       /// Boundary condition
-       int i;
-       for(i=0; i<(int)BC_Neumann.size(); i++)
-       {
-          os<<"--- Neumann BC"<<endl;
-          BC_Neumann[i]->Write(os);            
-       }
-       for(i=0; i<(int)BC_Dirichlet.size(); i++)
-       {
-          os<<"--- Dirichlet BC"<<endl;
-          BC_Dirichlet[i]->Write(os);            
-       }
-
-       for(i=0; i<(int)outp.size(); i++)
-          outp[i]->Write(os);            
- 
-
-       os<<"..."<<endl;
-    }
 
     //---------------------------------
     /*!
@@ -425,6 +402,61 @@ namespace _FDM
 
        os.close();
     }
+
+
+
+
+//----------------------------------------------------------
+   /*!
+      \fn FiniteDifference::Write(ostream &os = cout)
+
+       Output all paramters of the FDM
+       
+       04.2011 WW
+       
+   */
+   void FiniteDifference::Write(ostream &os)
+   {
+       mat->Write(os);
+       num->Write(os);   
+
+       /// Data for geometry and grid
+       os<<"--- Grid"<<endl;
+       os<<"\t ncols:    \t"<< nrows  <<endl;
+       os<<"\t nrows:    \t"<< ncols  <<endl;
+       os<<"\t xllcorner:\t"<< xll0   <<endl;
+       os<<"\t yllcorner:\t"<< yll0   <<endl;
+       os<<"\t cellsize: \t"<< cell_size <<endl<<endl;
+
+       /// Time step
+       os<<"--- Time ("<<time_unit<<")"<<endl;
+       os<<"\t start_time:\t"<<T0<<endl;
+       os<<"\t end_time:\t"<<T1<<endl;
+       os<<"\t step_size:\t"<<dt<<endl<<endl;
+
+       os<<"--- Initial condition"<<endl; 
+       ic->Write(os);
+
+       /// Boundary condition
+       int i;
+       for(i=0; i<(int)BC_Neumann.size(); i++)
+       {
+          os<<"--- Neumann BC"<<endl;
+          BC_Neumann[i]->Write(os);            
+       }
+       for(i=0; i<(int)BC_Dirichlet.size(); i++)
+       {
+          os<<"--- Dirichlet BC"<<endl;
+          BC_Dirichlet[i]->Write(os);            
+       }
+
+       for(i=0; i<(int)outp.size(); i++)
+          outp[i]->Write(os);            
+ 
+
+       os<<"..."<<endl;
+    }
+
 
   
 //----------------------------------------------------------
@@ -825,43 +857,94 @@ namespace _FDM
    {
        long i, istep;
        float current_time;
-       real *x = eqs->x;
 
        Point *pnt = NULL; 
+
       
+
+#ifndef USE_PETSC
+       real *x = eqs->x;
        eqs->ConfigNumerics(num);
+#endif
+
+
        eqs->Initialize(); 
+
        current_time = T0;
 
        istep = 0;
        while(current_time<=T1)
        {
+
+#ifdef USE_PETSC
+          PetscPrintf(PETSC_COMM_WORLD,"\n>> Time step (%s):  %d, ",time_unit.c_str(), istep);
+          PetscPrintf(PETSC_COMM_WORLD,"Current time: %f,  Step size: %f.\n",current_time, dt);
+
+#else
           cout<<"\n>> Time step ("<<time_unit<<") "<<istep
               <<": Current time "<<current_time
               <<"|| Step size "<<dt <<endl;
-
+#endif
           if(rrecharge)
           {
+#ifndef USE_PETSC
              real *rhs = eqs->b;
+#endif
              rrecharge->Read_Raster(current_time);
              for(i=0; i<eqs->Size(); i++)
              {
                 pnt = grid_point_in_use[i];
+#ifdef USE_PETSC
+                eqs->add_bVectorEntry(i, -rrecharge->Assign_Grid_Point(pnt->X(), pnt->Y()),ADD_VALUES );  
+#else
                 rhs[i] -= rrecharge->Assign_Grid_Point(pnt->X(), pnt->Y());
+#endif
              }
           }
           
+
+#ifdef USE_PETSC
+          PetscPrintf(PETSC_COMM_WORLD,"Build linear equation.\n");
+#else
           cout<<"\t>> Build linear equation.";
+#endif
+	  AssembleEQS();
 
-          AssembleEQS();
           eqs->Solver();
-          
-          for(i=0; i<eqs->Size(); i++)
-            u0[i] = u1[i] = x[i];
 
+          
+#ifdef USE_PETSC
+
+  #define  nonPETSC_TEST_OUT
+  #ifdef PETSC_TEST_OUT 
+          PetscViewer viewer;
+          eqs->EQSV_Viewer(file_name, viewer);
+       
+  #endif
+          eqs->UpdateSolutions(u0, u1);
+#else	  
+	  for(i=0; i<eqs->Size(); i++)
+	  {
+             u0[i] = x[i];
+             u1[i] = x[i];
+
+	  }
+#endif
           istep++;
+
+#ifdef USE_PETSC
+          int rank;
+          MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+          if(rank == 0) 
+#endif
           Output_Results(current_time, istep);
      
+
+#ifdef USE_PETSC
+          MPI_Barrier(PETSC_COMM_WORLD);
+#endif
+
+
           current_time += dt;
        }
                 
@@ -884,9 +967,11 @@ namespace _FDM
       real mat_m;
       real mat_l;
 
+#ifndef USE_PETSC
       SparseMatrix *A = eqs->A;
       real *b = eqs->b; 
       real *x = eqs->x; 
+#endif
       
       mat_m = mat->storage;
       mat_l = mat->conductivity*tim_fac;
@@ -894,20 +979,50 @@ namespace _FDM
 
       size = eqs->Size();
 
+
+
+
+
+#ifdef USE_PETSC
+
+ 
+               
       for(i=0; i<size; i++)
       {
+
+	 eqs->set_xVectorEntry(i,u0[i]);         
+         eqs->set_bVectorEntry(i,mat_m*u0[i]/dt);         
+
+      }
+      eqs->AssembleRHS_PETSc();
+      eqs->AssembleUnkowns_PETSc();
+      eqs->zeroMatrix();
+
+#else
+
+      for(i=0; i<size; i++)
+      {
+
          x[i] = u0[i];
          b[i] = mat_m*u0[i]/dt;
       }
-      *A = 0.; 
+
+      *A = 0.;
+#endif
+
+
+ 
       for(i=0; i<size; i++)
       {
          pnt = grid_point_in_use[i];
 
          /// Source/sink
          if(pnt->bc_type == Source_term)
+#ifdef USE_PETSC
+            eqs->add_bVectorEntry(i, pnt->value, ADD_VALUES);
+#else
             b[i] += pnt->value;
-
+#endif
          if(pnt->point_type == intern||pnt->point_type == border)
          {
             for(k=0; k<(int)pnt->neighbor_points.size(); k++)
@@ -916,13 +1031,21 @@ namespace _FDM
                   e_val = mat_m/dt - 4.0*mat_l/h2;
                else
                   e_val = mat_l/h2;
+
+#ifdef USE_PETSC
+               eqs->addMatrixEntry(i, pnt->neighbor_points[k] ,e_val);
+#else
                (*A)(i, pnt->neighbor_points[k]) = e_val;
+#endif
+
             }
          }
          else
          {
+	   
              switch(pnt->point_type)
              {
+	       
                 case nm_11:
                   setBC_at_PointOnLine(i, pnt, E);
                   break;
@@ -947,16 +1070,18 @@ namespace _FDM
                 case nm_24:
                   setBC_at_Point_atCCorner(i, pnt);
                   break;
+                 
                 //case border:
                 //  setBC_at_Point_atCCorner(i, pnt, N);
                 //  break;
                 default:
                   break; 
              }
-
+	   
          }
           
       }
+
 
 #define aTEST
 #ifdef TEST
@@ -966,12 +1091,63 @@ namespace _FDM
       os_m.close();
 
 #endif 
+
+
       /// set Dirichlet BC
+#ifdef USE_PETSC
+      eqs->AssembleMatrixPETSc();
+      eqs->AssembleRHS_PETSc();
+      eqs->AssembleUnkowns_PETSc();
+
+      PetscInt *rows_toberemoved;
+      int nrows =(int)BC_Dirichlet_points.size();   
+
+      rows_toberemoved = new PetscInt[nrows];
+      
+//TEST  PetscErrorCode ierr;
+//      PetscPrintf(PETSC_COMM_WORLD,"Number of DBC %D\n",nrows);
+ ////
+
+      
+
+      for(i=0; i<nrows; i++) 
+      {
+         l =  BC_Dirichlet_points[i];
+         rows_toberemoved[i] =  l;
+	 eqs->set_bVectorEntry(l,grid_point_in_use[l]->value);         
+         eqs->set_xVectorEntry(l,grid_point_in_use[l]->value);    
+     
+      }
+      eqs->zeroRows_in_Matrix(nrows, rows_toberemoved);
+     
+
+      eqs->AssembleRHS_PETSc();
+      eqs->AssembleUnkowns_PETSc();
+               
+      eqs->AssembleMatrixPETSc();
+
+
+      //TEST
+
+#ifdef TEST_PETSC_OUT
+      
+       PetscViewer viewer;
+         PetscViewerCreate(PETSC_COMM_WORLD, &viewer);
+         eqs->EQSV_Viewer(file_name, viewer);
+#endif
+
+
+      delete [] rows_toberemoved;
+      rows_toberemoved = NULL;
+
+#else
       for(i=0; i<(long)BC_Dirichlet_points.size(); i++) 
       {
           l =  BC_Dirichlet_points[i];
           eqs->setKnownX_i(l, grid_point_in_use[l]->value); 
-      } 
+      }
+#endif 
+ 
 
 #ifdef TEST
       fname = file_name + "_bc_matrix.txt" ;
@@ -980,6 +1156,7 @@ namespace _FDM
       os_m.close();
 
 #endif 
+
 
        
    } 
@@ -997,8 +1174,12 @@ namespace _FDM
    void FiniteDifference::setBC_at_PointOnLine(long i, Point *pnt, NeighborPoint_Type nbt)
    {
       int k;
+
+#ifndef USE_PETSC
       SparseMatrix *A = eqs->A;
       real *b = eqs->b; 
+#endif
+
       real e_val;
       
       real mat_m = mat->storage;
@@ -1015,9 +1196,18 @@ namespace _FDM
                 e_val = 2.0*mat_l/h2;
              else
                 e_val = mat_l/h2;
+#ifdef USE_PETSC
+             eqs->addMatrixEntry(i, pnt->neighbor_points[k], e_val);
+#else
              (*A)(i, pnt->neighbor_points[k]) = e_val;
+#endif
            }
+#ifdef USE_PETSC
+
+           eqs->add_bVectorEntry(i, -2.*pnt->value/cell_size, ADD_VALUES);
+#else
            b[i] -= 2.*pnt->value/cell_size;                      
+#endif
  
       }
       else if(pnt->bc_type == Dirichlet)
@@ -1031,8 +1221,13 @@ namespace _FDM
                  e_val = 0.;
              else
                  e_val = mat_l/h2;
+#ifdef USE_PETSC
+             eqs->addMatrixEntry(i, pnt->neighbor_points[k], e_val);
+             eqs->add_bVectorEntry(i, -2.0*pnt->value/h2, ADD_VALUES);
+#else
              (*A)(i, pnt->neighbor_points[k]) = e_val;
              b[i] -= 2.0*pnt->value/h2;
+#endif
           }
       }
                
@@ -1052,8 +1247,12 @@ namespace _FDM
   void FiniteDifference::setBC_at_Point_atCCorner(long i, Point *pnt)
   {
       int k;
+
+#ifndef USE_PETSC
       SparseMatrix *A = eqs->A;
       real *b = eqs->b; 
+#endif
+
       real e_val;
       
       real mat_m = mat->storage;
@@ -1068,10 +1267,17 @@ namespace _FDM
                 e_val = mat_m/dt - 4.0*mat_l/h2;
              else
                 e_val = 2.0*mat_l/h2;
-
+#ifdef USE_PETSC
+             eqs->addMatrixEntry(i, pnt->neighbor_points[k],  e_val);
+#else
              (*A)(i, pnt->neighbor_points[k]) = e_val;
+#endif
            }
-           b[i] -= 4.*pnt->value/cell_size;                      
+#ifdef USE_PETSC
+           eqs->add_bVectorEntry(i, -4.*pnt->value/cell_size, ADD_VALUES); 
+#else
+           b[i] -= 4.*pnt->value/cell_size;  
+#endif                    
  
       }
       else if(pnt->bc_type == Dirichlet)
@@ -1087,8 +1293,13 @@ namespace _FDM
              else 
                  e_val = 0.;
 
+#ifdef USE_PETSC
+             eqs->addMatrixEntry(i,pnt->neighbor_points[k], e_val);
+             eqs->add_bVectorEntry(i, -4.0*pnt->value/h2, ADD_VALUES);
+#else
              (*A)(i, pnt->neighbor_points[k]) = e_val;
              b[i] -= 4.0*pnt->value/h2;
+#endif
           }
       }
                
@@ -1212,7 +1423,9 @@ namespace _FDM
          os<<u1[i]<<endl;
 
 
-    }      
+    }  
+
+    
 }
 
 
