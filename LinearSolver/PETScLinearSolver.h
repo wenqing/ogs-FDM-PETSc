@@ -18,16 +18,16 @@ typedef Vec PETSc_Vec;
 class PETScLinearSolver
 {
   public:    
-    PETScLinearSolver (const int size, const float tol)
+    PETScLinearSolver (const int size)
       :lsolver(NULL),prec(NULL) 
     {
-       ltolerance = tol;
+       ltolerance = 1.e-10;
        m_size = size;
        time_elapsed = 0.0;           
     }
     ~PETScLinearSolver();
 
-    void Config();
+    void Config(const float tol, const KSPType lsol, const PCType prec_type);
 
     void Init()
     {
@@ -77,6 +77,10 @@ class PETScLinearSolver
     PETSc_Vec x;
     KSP lsolver;
     PC prec; 
+
+    // Slover and preconditioner names, only for log
+    std::string sol_type;
+    std::string pc_type;
 
     PetscLogDouble time_elapsed;
 

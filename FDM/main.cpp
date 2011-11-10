@@ -31,13 +31,13 @@ int main ( int argc, char *argv[] )
   string file_name;
   string file_path;
   
+  cout<<"\tA 2-D FDM groundwater flow simulator (by WW@UFZ) "<<endl;
+  cout<<"\tV3.0 (with PETSc). 11.2011 "<<endl;
 
   if(argc>1) 
      strcpy(str1,argv[1]);
   else 
   {
-     cout<<"\tA 2-D FDM groundwater flow simulator (by WW@UFZ) "<<endl;
-     cout<<"\tV3.0. 09.2011 "<<endl;
      cout<<"\tInput file name (without extension): ";
      scanf("%s%*[^\n]%*c",str1);
   }

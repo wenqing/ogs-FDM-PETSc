@@ -123,7 +123,7 @@ namespace _FDM
          if(CheckComment(aline))
            continue;
 
-		 aline = AuxFunctions::string_To_lower(aline);
+         aline = AuxFunctions::string_To_lower(aline);
          if(aline.find("material")!=string::npos)
          {
             mat = new Mat_Property(ins);
@@ -247,10 +247,11 @@ namespace _FDM
       /// Generate a linear solver
 
 #ifdef USE_PETSC
-      eqs = new PETScLinearSolver(size, 1.e-8);
+      eqs = new PETScLinearSolver(size);
       eqs->Init();
       eqs->set_rank_size(rank_MPI, size_MPI);
-      eqs->Config();
+      eqs->Config(num->getTolerance(), 
+                  num->getSolverName(), num->getPreConditionerName());
       
 #else
       sp = new SparseTable(this);
@@ -878,7 +879,7 @@ namespace _FDM
 
 #ifdef USE_PETSC
           PetscPrintf(PETSC_COMM_WORLD,"\n>> Time step (%s):  %d, ",time_unit.c_str(), istep);
-          PetscPrintf(PETSC_COMM_WORLD,"Current time: %f,  Step size: %f.\n",current_time, dt);
+          PetscPrintf(PETSC_COMM_WORLD,"Current time: %8.2f,  Step size: %8.2f.\n",current_time, dt);
 
 #else
           cout<<"\n>> Time step ("<<time_unit<<") "<<istep
@@ -980,13 +981,8 @@ namespace _FDM
       size = eqs->Size();
 
 
-
-
-
 #ifdef USE_PETSC
-
- 
-               
+              
       for(i=0; i<size; i++)
       {
 

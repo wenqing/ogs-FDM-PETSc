@@ -12,13 +12,16 @@ namespace _FDM
          Numerics(std::ifstream &ins);
          ~Numerics() {}
 
-		 void Write(std::ostream &os = std::cout);
+         void Write(std::ostream &os = std::cout);
 
          int getType() const {return type;}
          int getPrecType() const {return prec_type;}
          int getSub_Dim() const {return sub_dim;}
          int getMax_Iteration() const {return max_ite;}
          double getTolerance() const {return tol;}
+
+         const char *getSolverName() const {return name.c_str(); }
+         const char *getPreConditionerName() const {return prec_name.c_str(); }
 
        private:
 

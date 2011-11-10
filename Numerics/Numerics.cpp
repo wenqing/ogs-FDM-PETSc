@@ -26,7 +26,7 @@ namespace _FDM
      for(int i=0; i<4; i++)
      {
         getline(ins, aline); 
-		aline = AuxFunctions::string_To_lower(aline);
+        aline = AuxFunctions::string_To_lower(aline);
         if(aline.find("linear")!=string::npos) 
         {
            ss.str(aline);
@@ -34,23 +34,26 @@ namespace _FDM
            ss>>aline;
            ss>>aline;
            name = aline;
-           if(aline.find("Guass")!=string::npos)
+           if(aline.find("guass")!=string::npos)
              type = 1; 
-           else if(aline.find("BiCGSTab")!=string::npos)
+           else if(aline.find("bicgstab")!=string::npos)
              type = 2; 
-           else if(aline.find("BiCG")!=string::npos)
+           else if(aline.find("bicg")!=string::npos)
              type = 3; 
-           else if(aline.find("CG")!=string::npos)
+           else if(aline.find("cg")!=string::npos)
              type = 5; 
-           else if(aline.find("CGS")!=string::npos)
+           else if(aline.find("cgs")!=string::npos)
              type = 7; 
-           else if(aline.find("GMRES")!=string::npos)
+           else if(aline.find("gmres")!=string::npos)
            {
              type = 13; 
              ss>>sub_dim;
            }
            else
+           {
              type = 5; 
+             //name = "cg";
+           } 
            ss.clear();
         } 
         if(aline.find("preconditioner")!=string::npos) 
@@ -62,10 +65,13 @@ namespace _FDM
            prec_name = aline;
            if(aline.find("jacobi")!=string::npos)
              prec_type = 1; 
-           else if(aline.find("ILU")!=string::npos)
+           else if(aline.find("ilu")!=string::npos)
              prec_type = 100; 
            else 
-             prec_type = -1; 
+           {
+             prec_type = -1;
+             //prec_name = "none"; 
+           }
            ss.clear();
         }
         if(aline.find("tolerance")!=string::npos) 

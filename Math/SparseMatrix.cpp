@@ -459,16 +459,33 @@ void SparseMatrix::multiVec(double *vec_s, double *vec_r)
   {
     if(storage_type==CRS)
     {
-       /// ptr is num_column_entries
-       for (ii = 0; ii < rows; ii++)
+
+       if(symmetry)
        {
-          for (j = num_column_entries[ii]; j < num_column_entries[ii+1]; j++)
-          {          
-             jj=entry_column[j];
-             vec_r[ii] += entry[j]*vec_s[jj];
-             if(symmetry&(ii!=jj))
-                 vec_r[jj] += entry[j]*vec_s[ii];
-          }         
+          /// ptr is num_column_entries
+          for (ii = 0; ii < rows; ii++)
+          {
+             for (j = num_column_entries[ii]; j < num_column_entries[ii+1]; j++)
+             {          
+                jj=entry_column[j];
+                vec_r[ii] += entry[j]*vec_s[jj];           
+                if(ii!=jj)
+                  vec_r[jj] += entry[j]*vec_s[ii];
+             }         
+          }
+
+       }  
+       else
+       {
+          /// ptr is num_column_entries
+          for (ii = 0; ii < rows; ii++)
+          {
+             for (j = num_column_entries[ii]; j < num_column_entries[ii+1]; j++)
+             {          
+                jj=entry_column[j];
+                vec_r[ii] += entry[j]*vec_s[jj];
+             }         
+          }
        }
         
     }

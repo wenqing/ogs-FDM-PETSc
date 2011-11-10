@@ -20,14 +20,98 @@ PETScLinearSolver:: ~PETScLinearSolver()
   PetscPrintf(PETSC_COMM_WORLD,"\n>>Elapsed time in linear solver: %fs", time_elapsed);
 }
 
-void PETScLinearSolver::Config()
+/*!
+  \brief KSP and PC type
+
+ KSPRICHARDSON "richardson"
+ KSPCHEBYCHEV  "chebychev"
+ KSPCG         "cg"
+ KSPCGNE       "cgne"
+ KSPNASH       "nash"
+ KSPSTCG       "stcg"
+ KSPGLTR       "gltr"
+ KSPGMRES      "gmres"
+ KSPFGMRES     "fgmres" 
+ KSPLGMRES     "lgmres"
+ KSPDGMRES     "dgmres"
+ KSPTCQMR      "tcqmr"
+ KSPBCGS       "bcgs"
+ KSPIBCGS        "ibcgs"
+ KSPBCGSL        "bcgsl"
+ KSPCGS        "cgs"
+ KSPTFQMR      "tfqmr"
+ KSPCR         "cr"
+ KSPLSQR       "lsqr"
+ KSPPREONLY    "preonly"
+ KSPQCG        "qcg"
+ KSPBICG       "bicg"
+ KSPMINRES     "minres"
+ KSPSYMMLQ     "symmlq"
+ KSPLCD        "lcd"
+ KSPPYTHON     "python"
+ KSPBROYDEN    "broyden"
+ KSPGCR        "gcr"
+ KSPNGMRES     "ngmres"
+ KSPSPECEST    "specest"
+
+ PCNONE            "none"
+ PCJACOBI          "jacobi"
+ PCSOR             "sor"
+ PCLU              "lu"
+ PCSHELL           "shell"
+ PCBJACOBI         "bjacobi"
+ PCMG              "mg"
+ PCEISENSTAT       "eisenstat"
+ PCILU             "ilu"
+ PCICC             "icc"
+ PCASM             "asm"
+ PCGASM            "gasm"
+ PCKSP             "ksp"
+ PCCOMPOSITE       "composite"
+ PCREDUNDANT       "redundant"
+ PCSPAI            "spai"
+ PCNN              "nn"
+ PCCHOLESKY        "cholesky"
+ PCPBJACOBI        "pbjacobi"
+ PCMAT             "mat"
+ PCHYPRE           "hypre"
+ PCPARMS           "parms"
+ PCFIELDSPLIT      "fieldsplit"
+ PCTFS             "tfs"
+ PCML              "ml"
+ PCPROMETHEUS      "prometheus"
+ PCGALERKIN        "galerkin"
+ PCEXOTIC          "exotic"
+ PCHMPI            "hmpi"
+ PCSUPPORTGRAPH    "supportgraph"
+ PCASA             "asa"
+ PCCP              "cp"
+ PCBFBT            "bfbt"
+ PCLSC             "lsc"
+ PCPYTHON          "python"
+ PCPFMG            "pfmg"
+ PCSYSPFMG         "syspfmg"
+ PCREDISTRIBUTE    "redistribute"
+ PCSACUSP          "sacusp"
+ PCSACUSPPOLY      "sacusppoly"
+ PCBICGSTABCUSP    "bicgstabcusp"
+ PCSVD             "svd"
+ PCAINVCUSP        "ainvcusp"
+ PCGAMG            "gamg"
+
+*/
+void PETScLinearSolver::Config(const float tol, const KSPType lsol, const PCType prec_type)
 {
+   ltolerance = tol;
+   sol_type = lsol;
+   pc_type = prec_type; 
+
    KSPCreate(PETSC_COMM_WORLD,&lsolver);
    KSPSetOperators(lsolver, A, A,DIFFERENT_NONZERO_PATTERN);
-   KSPSetType(lsolver,KSPCG);
+   KSPSetType(lsolver,lsol);
 
    KSPGetPC(lsolver, &prec);
-   PCSetType(prec, PCSOR); //  PCJACOBI); //PCNONE);
+   PCSetType(prec, prec_type); //  PCJACOBI); //PCNONE);
    KSPSetTolerances(lsolver,ltolerance,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
    KSPSetFromOptions(lsolver);
 
@@ -86,9 +170,13 @@ void PETScLinearSolver::Solver()
    }
    else 
    {
-     KSPGetIterationNumber(lsolver,&its); //CHKERRQ(ierr);
-     PetscPrintf(PETSC_COMM_WORLD,"\nConvergence in %d iterations.\n",(int)its);
-   }
+
+      PetscPrintf(PETSC_COMM_WORLD,"\n================================================");         
+      PetscPrintf(PETSC_COMM_WORLD, "\nLinear solver %s with %s preconditioner",
+                                    sol_type.c_str(), pc_type.c_str() );         
+      KSPGetIterationNumber(lsolver,&its); //CHKERRQ(ierr);
+      PetscPrintf(PETSC_COMM_WORLD,"\nConvergence in %d iterations.\n",(int)its);
+      PetscPrintf(PETSC_COMM_WORLD,"\n================================================");           }
    PetscPrintf(PETSC_COMM_WORLD,"\n");
 
    VecAssemblyBegin(x);
@@ -143,6 +231,7 @@ void PETScLinearSolver::UpdateSolutions(PetscScalar *u0, PetscScalar *u1)
   VecGetArray(x, &xp);
   for(i=0;i<m_size;i++)
     u1[i] = xp[i];
+
 
   double *u_temp = new double[m_size];
 
