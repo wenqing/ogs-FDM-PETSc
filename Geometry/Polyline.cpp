@@ -81,12 +81,13 @@ namespace Geometry_Group
    bool Polyline::PointInDomain(double x, double y)
    {
       Point *pnt_i, *pnt_j; 
-      real xi, yi, xj, yj;
+      real xi, yi, xj, yj, dx, dy, ku, kv;
       int size = (int)points.size();
       int   i, j;
       j = size-1 ;
       bool  inside = false;
 
+	  
       for (i=0; i<size; i++) 
       {
          pnt_i = points[i];
@@ -96,16 +97,57 @@ namespace Geometry_Group
          xj =  pnt_j->X();
          yj =  pnt_j->Y();
 
+         dx = x-xi;
+         dy = y-yi;
+         if(sqrt(dx*dx+dy*dy)<DBL_EPSILON)
+		 {
+		    inside = true;
+		    break; 	 
+		 }
+
+         if(fabs(xj-xi)>DBL_MIN)               
+         {
+             ku = (yj-yi)/(xj-xi);
+             /// p, pi, pj on the same line  
+             if(fabs(x-xi ) > DBL_MIN)
+			 {
+                kv = (y-yi)/(x-xi);
+				/// p_pi and pj_pi are parallel
+                if(fabs(ku-kv) < DBL_MIN)
+				{
+                   kv = (x-xi)/(xj-xi);
+                   if(kv>=0.0&&kv<=1.0) // p is inbetween pi and pj
+				   {
+                      inside = true;
+                      break;					  
+				   }
+				}
+
+			 }
+		 }
+		 else // Vertical line: xi = xj
+		 {
+             if(fabs(x-xi)<DBL_MIN)    
+			 {
+                kv = (y-yi)/(yj-yi);
+                if(kv>=0.0&&kv<=1.0) // p is inbetween pi and pj
+			    {
+                    inside = true;
+                    break;					  
+				}
+			 }
+		 }
+
          if (( (yi<y) && (yj>=y) )||( (yj<y) && (yi>=y)) ) 
          {
-            if (xi+(y-yi)/(yj-yi)*(xj-xi)<x)
+            if (xi+((y-yi)/(yj-yi))*(xj-xi)<x)
             {
               inside = !inside; 
             }
          }
          j=i;
-       }
-
+      }
+	  
        return inside;  
    }
    /*!
@@ -117,18 +159,19 @@ namespace Geometry_Group
    */ 
    real Polyline::MinDisttanceTo_a_Point(const Point *pnt)
    {
-      int i, j;
+      size_t i, k;
       real a[3], b[3], c[3], dist; 
       real min_dist = DBL_MAX;
-      for(i=0; i<(int)points.size()-1; i++) 
+     
+      for(i=0; i<points.size()-1; i++) 
       {
-         for(j=0; j<3; j++) 
+         for(k=0; k<3; k++) 
          {
-            a[j] = pnt->coordinates[j];
-            b[j] = points[0]->coordinates[j];
-            c[j] = points[1]->coordinates[j];
+            a[k] = pnt->coordinates[k];
+            b[k] = points[i]->coordinates[k];
+            c[k] = points[i+1]->coordinates[k];
          }
-         dist = 2.0*ComputeDetTri(a,b,c)/points[0]->getDistanceTo(points[1]);
+         dist = 2.0*ComputeDetTri(a,b,c)/points[i]->getDistanceTo(points[i+1]);
          if(dist<min_dist)
            min_dist = dist;
       }

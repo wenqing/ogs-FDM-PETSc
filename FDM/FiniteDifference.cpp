@@ -519,13 +519,13 @@ namespace _FDM
                     new_grid_pnt->grid_j = j; 
                     grid_point_in_use.push_back(new_grid_pnt);
                  }                 
-                 if(pnt_eqs_index[(i+1)*(ncols+1)+j] == -1)
+                 if(pnt_eqs_index[i*(ncols+1)+j+1] == -1)
                  {
-                    Point *new_grid_pnt = new Point((long)grid_point_in_use.size(), x0, y1);
+                    Point *new_grid_pnt = new Point((long)grid_point_in_use.size(), x1, y0);
                     new_grid_pnt->point_type = intern;
-                    pnt_eqs_index[(i+1)*(ncols+1)+j] = new_grid_pnt->Index();
+                    pnt_eqs_index[i*(ncols+1)+j+1] = new_grid_pnt->Index();
                     new_grid_pnt->grid_i = i+1;
-                    new_grid_pnt->grid_j = j; 
+                    new_grid_pnt->grid_j = j+1; 
                     grid_point_in_use.push_back(new_grid_pnt);
                  }                 
                  if(pnt_eqs_index[(i+1)*(ncols+1)+j+1] == -1)
@@ -537,13 +537,13 @@ namespace _FDM
                     new_grid_pnt->grid_j = j+1; 
                     grid_point_in_use.push_back(new_grid_pnt);
                  }                 
-                 if(pnt_eqs_index[i*(ncols+1)+j+1] == -1)
+                 if(pnt_eqs_index[(i+1)*(ncols+1)+j] == -1)
                  {
-                    Point *new_grid_pnt = new Point((long)grid_point_in_use.size(), x1, y0);
+                    Point *new_grid_pnt = new Point((long)grid_point_in_use.size(), x0, y1);
                     new_grid_pnt->point_type = intern;
-                    pnt_eqs_index[i*(ncols+1)+j+1] = new_grid_pnt->Index();
+                    pnt_eqs_index[(i+1)*(ncols+1)+j] = new_grid_pnt->Index();
                     new_grid_pnt->grid_i = i+1;
-                    new_grid_pnt->grid_j = j+1; 
+                    new_grid_pnt->grid_j = j; 
                     grid_point_in_use.push_back(new_grid_pnt);
                  }                 
                   
@@ -643,6 +643,8 @@ namespace _FDM
                      pnt->np_position.push_back(E);
                      pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[jw]]->Index());
                      pnt->np_position.push_back(W);
+                     pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[jn]]->Index());
+                     pnt->np_position.push_back(N);
                  }
                  ///       ||||
                  ///       .|||
@@ -656,6 +658,8 @@ namespace _FDM
                      pnt->np_position.push_back(N);
                      pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[js]]->Index());
                      pnt->np_position.push_back(S);
+                     pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[jw]]->Index());
+                     pnt->np_position.push_back(W);
                      
                  }
                  ///||||
@@ -670,6 +674,8 @@ namespace _FDM
                      pnt->np_position.push_back(N);
                      pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[js]]->Index());
                      pnt->np_position.push_back(S);
+                     pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[je]]->Index());
+                     pnt->np_position.push_back(E);
                  }
                  ///-------------------
                  ///-------------------                  
@@ -684,6 +690,8 @@ namespace _FDM
                      pnt->np_position.push_back(E);
                      pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[jw]]->Index());
                      pnt->np_position.push_back(W);
+                     pnt->neighbor_points.push_back(grid_point_in_use[pnt_eqs_index[je]]->Index());
+                     pnt->np_position.push_back(S);
                  }
 
               }
@@ -759,13 +767,17 @@ namespace _FDM
     {
         int i;
         Point *bc_pnt;
+		double tol = 0.5*cell_size;
 
         bc_pnt = NULL;
         for(i=0; i<(int)BC_Dirichlet.size(); i++)
         {
-           bc_pnt = BC_Dirichlet[i]->getClosedPoint(pnt, cell_size);
+           bc_pnt = BC_Dirichlet[i]->getClosedPoint(pnt, tol);
            if(bc_pnt)
-             bc_pnt->value = BC_Dirichlet[i]->value;
+		   {
+              bc_pnt->value = BC_Dirichlet[i]->value;
+              break; 
+		   }
         }
          
         if(!bc_pnt)
@@ -800,11 +812,15 @@ namespace _FDM
         Point *bc_pnt;
         bc_pnt = NULL;
 
+        double tol = 0.5*cell_size;  
         for(i=0; i<(int)BC_Neumann.size(); i++)
         {
-           bc_pnt = BC_Neumann[i]->getClosedPoint(pnt, cell_size);
+           bc_pnt = BC_Neumann[i]->getClosedPoint(pnt, tol);
            if(bc_pnt)
-             bc_pnt->value = BC_Neumann[i]->value;
+		   {
+               bc_pnt->value = BC_Neumann[i]->value;
+               break;
+		   }
         }
          
         if(!bc_pnt)
@@ -836,7 +852,10 @@ namespace _FDM
         {
            bc_pnt = Source_Sink[i]->getClosedPoint(pnt, cell_size);
            if(bc_pnt)
-             bc_pnt->value = Source_Sink[i]->value;
+		   { 
+              bc_pnt->value = Source_Sink[i]->value;
+              break;
+		   }
         }
          
         if(!bc_pnt)
@@ -909,7 +928,7 @@ namespace _FDM
 #else
           cout<<"\t>> Build linear equation.";
 #endif
-	  AssembleEQS();
+          AssembleEQS();
 
           eqs->Solver();
 
@@ -986,7 +1005,7 @@ namespace _FDM
       for(i=0; i<size; i++)
       {
 
-	 eqs->set_xVectorEntry(i,u0[i]);         
+	     eqs->set_xVectorEntry(i,u0[i]);         
          eqs->set_bVectorEntry(i,mat_m*u0[i]/dt);         
 
       }
@@ -1019,7 +1038,7 @@ namespace _FDM
 #else
             b[i] += pnt->value;
 #endif
-         if(pnt->point_type == intern||pnt->point_type == border)
+         if(pnt->point_type == intern)//||pnt->point_type == border)
          {
             for(k=0; k<(int)pnt->neighbor_points.size(); k++)
             {
@@ -1053,7 +1072,8 @@ namespace _FDM
                   break;                 
                 case nm_14:
                   setBC_at_PointOnLine(i, pnt, N);
-                  break;                 
+                  break; 
+
                 case nm_21:
                   setBC_at_Point_atCCorner(i, pnt);
                   break;
@@ -1066,7 +1086,7 @@ namespace _FDM
                 case nm_24:
                   setBC_at_Point_atCCorner(i, pnt);
                   break;
-                 
+
                 //case border:
                 //  setBC_at_Point_atCCorner(i, pnt, N);
                 //  break;
@@ -1110,7 +1130,7 @@ namespace _FDM
       {
          l =  BC_Dirichlet_points[i];
          rows_toberemoved[i] =  l;
-	 eqs->set_bVectorEntry(l,grid_point_in_use[l]->value);         
+         eqs->set_bVectorEntry(l,grid_point_in_use[l]->value);         
          eqs->set_xVectorEntry(l,grid_point_in_use[l]->value);    
      
       }
@@ -1137,6 +1157,7 @@ namespace _FDM
       rows_toberemoved = NULL;
 
 #else
+
       for(i=0; i<(long)BC_Dirichlet_points.size(); i++) 
       {
           l =  BC_Dirichlet_points[i];

@@ -17,6 +17,7 @@ PETScLinearSolver:: ~PETScLinearSolver()
   if(lsolver) KSPDestroy(&lsolver);
   // if(prec) PCDestroy(&prec);
 
+  PetscPrintf(PETSC_COMM_WORLD,"\n>>Number of Unknows: %d", m_size);
   PetscPrintf(PETSC_COMM_WORLD,"\n>>Elapsed time in linear solver: %fs", time_elapsed);
 }
 

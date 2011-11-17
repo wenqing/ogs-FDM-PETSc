@@ -646,7 +646,9 @@ void SparseMatrix::Diagonize(const long idiag, const double b_given, double *b)
         }
      }    
      
-     /// Clean column id                
+     /// Clean column id    
+	 /*
+     long i;	  
      for (i = 0; i < rows; i++)
      {
         j = AuxFunctions::binarySearch(entry_column, id, num_column_entries[i], num_column_entries[i+1]); 
@@ -662,11 +664,12 @@ void SparseMatrix::Diagonize(const long idiag, const double b_given, double *b)
            entry[k] = 0.; 
            // Room for symmetry case
         }           
-     }      
+     }
+	 */
   }
   else if(storage_type == JDS)
   {
-     long i0, row_in_parse_table, counter;
+     long row_in_parse_table, counter;
 
      // Row is zero
      row_in_parse_table = row_index_mapping_o2n[id];
@@ -688,7 +691,10 @@ void SparseMatrix::Diagonize(const long idiag, const double b_given, double *b)
         else
            break;
      }
-     //
+
+#ifdef colDEBUG
+     long i0;
+     // /// Clean column id    
      counter=0;
      for (k = 0; k < max_columns; k++)
      {
@@ -718,6 +724,7 @@ void SparseMatrix::Diagonize(const long idiag, const double b_given, double *b)
          counter++;
        }         
      }
+#endif
   }
   b[idiag] = vdiag*b_given;
 }
