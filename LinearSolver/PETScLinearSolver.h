@@ -69,6 +69,9 @@ class PETScLinearSolver
     } 
 
 
+    PetscInt getStartRow() const {return i_start;} 
+    PetscInt getEndRow() const {return i_end;} 
+
     void EQSV_Viewer(std::string file_name, PetscViewer viewer);
    
   private:
@@ -77,6 +80,8 @@ class PETScLinearSolver
     PETSc_Vec x;
     KSP lsolver;
     PC prec; 
+    PetscInt i_start;
+    PetscInt i_end;
 
     // Slover and preconditioner names, only for log
     std::string sol_type;

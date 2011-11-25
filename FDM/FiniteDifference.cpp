@@ -269,13 +269,16 @@ namespace _FDM
          u0[i] = u1[i] = ic->value;
       }
 
-      cout<<">> Write grid."<<endl;
 #ifdef USE_PETSC
           int rank;
           MPI_Comm_rank(MPI_COMM_WORLD, &rank);
           if(rank == 0) 
 #endif
-      WriteGrid_VTK();
+      if(outp.size()>0)
+      {
+         cout<<">> Write grid."<<endl;
+         WriteGrid_VTK();
+      }
      
 
 
@@ -928,9 +931,9 @@ namespace _FDM
 #else
           cout<<"\t>> Build linear equation.";
 #endif
-          AssembleEQS();
+	  AssembleEQS();
 
-          eqs->Solver();
+	  eqs->Solver();
 
           
 #ifdef USE_PETSC
@@ -981,7 +984,7 @@ namespace _FDM
    void FiniteDifference::AssembleEQS()
    {
       int k;
-      long i, l, size;
+      long i, l;
       Point *pnt; 
       real e_val, h2; 
       real mat_m;
@@ -991,21 +994,21 @@ namespace _FDM
       SparseMatrix *A = eqs->A;
       real *b = eqs->b; 
       real *x = eqs->x; 
+      long size = eqs->Size();
 #endif
       
       mat_m = mat->storage;
       mat_l = mat->conductivity*tim_fac;
       h2 = cell_size*cell_size;
 
-      size = eqs->Size();
 
 
 #ifdef USE_PETSC
               
-      for(i=0; i<size; i++)
+      for(i=eqs->getStartRow(); i<eqs->getEndRow(); i++)
       {
 
-	     eqs->set_xVectorEntry(i,u0[i]);         
+         eqs->set_xVectorEntry(i,u0[i]);         
          eqs->set_bVectorEntry(i,mat_m*u0[i]/dt);         
 
       }
@@ -1026,9 +1029,14 @@ namespace _FDM
 #endif
 
 
- 
+
+#ifdef USE_PETSC
+      for(i=eqs->getStartRow(); i<eqs->getEndRow(); i++)
+#else 
       for(i=0; i<size; i++)
+#endif
       {
+
          pnt = grid_point_in_use[i];
 
          /// Source/sink
@@ -1038,7 +1046,7 @@ namespace _FDM
 #else
             b[i] += pnt->value;
 #endif
-         if(pnt->point_type == intern)//||pnt->point_type == border)
+         if(pnt->point_type == intern||pnt->point_type == border)
          {
             for(k=0; k<(int)pnt->neighbor_points.size(); k++)
             {
@@ -1109,11 +1117,21 @@ namespace _FDM
 #endif 
 
 
+
       /// set Dirichlet BC
 #ifdef USE_PETSC
       eqs->AssembleMatrixPETSc();
       eqs->AssembleRHS_PETSc();
       eqs->AssembleUnkowns_PETSc();
+
+      //TEST
+#define aTEST_PETSC_OUT
+#ifdef TEST_PETSC_OUT      
+       PetscViewer viewer;
+       PetscViewerCreate(PETSC_COMM_WORLD, &viewer);
+       eqs->EQSV_Viewer(file_name, viewer);
+#endif
+
 
       PetscInt *rows_toberemoved;
       int nrows =(int)BC_Dirichlet_points.size();   
@@ -1130,27 +1148,22 @@ namespace _FDM
       {
          l =  BC_Dirichlet_points[i];
          rows_toberemoved[i] =  l;
-         eqs->set_bVectorEntry(l,grid_point_in_use[l]->value);         
-         eqs->set_xVectorEntry(l,grid_point_in_use[l]->value);    
+
+         if((l>=eqs->getStartRow())&&(l<eqs->getEndRow()))
+         {
+            eqs->set_bVectorEntry(l,grid_point_in_use[l]->value);         
+            eqs->set_xVectorEntry(l,grid_point_in_use[l]->value);   
+
+         }
      
       }
       eqs->zeroRows_in_Matrix(nrows, rows_toberemoved);
      
-
+               
       eqs->AssembleRHS_PETSc();
       eqs->AssembleUnkowns_PETSc();
-               
       eqs->AssembleMatrixPETSc();
 
-
-      //TEST
-
-#ifdef TEST_PETSC_OUT
-      
-       PetscViewer viewer;
-         PetscViewerCreate(PETSC_COMM_WORLD, &viewer);
-         eqs->EQSV_Viewer(file_name, viewer);
-#endif
 
 
       delete [] rows_toberemoved;

@@ -134,6 +134,12 @@ void PETScLinearSolver::MatrixCreate( PetscInt m, PetscInt n)
   MatCreate(PETSC_COMM_WORLD, &A);
   MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n);
   MatSetFromOptions(A);
+  MatMPIAIJSetPreallocation(A,5,PETSC_NULL,5,PETSC_NULL);
+  MatSeqAIJSetPreallocation(A,5,PETSC_NULL);
+  MatGetOwnershipRange(A,&i_start,&i_end);
+
+  //TEST
+  // std::cout<<"sub_a  "<<i_start<<";   sub_d "<<i_end<<std::endl;
 }
 
 
