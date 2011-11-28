@@ -237,7 +237,7 @@ void PETScLinearSolver::UpdateSolutions(PetscScalar *u0, PetscScalar *u1)
 
 
   VecGetArray(x, &xp);
-  for(i=0;i<m_size;i++)
+  for(i=0; i<count; i++)
     u1[i] = xp[i];
 
 
