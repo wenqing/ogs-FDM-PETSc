@@ -625,7 +625,7 @@ void SparseMatrix::Diagonize(const long idiag, const double b_given, double *b)
 {
   //
   double vdiag = 0.;
-  long i, j, k, ii, jj, j0;
+  long j, k, ii, jj, j0;
   long id = idiag%rows;
   ii = idiag/rows;
 

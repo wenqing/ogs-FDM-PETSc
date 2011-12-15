@@ -5,9 +5,9 @@
  Function:   See the declaration below
  Design and programm WW
 ==========================================================================*/
-#ifndef matrix_class_INC
+#ifndef SymMatrix_INC
 
-#define matrix_class_INC
+#define SymMatrix_INC
 
 #include<iostream>
 #include<fstream>
