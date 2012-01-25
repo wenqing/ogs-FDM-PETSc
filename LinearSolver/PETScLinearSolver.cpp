@@ -130,17 +130,30 @@ void PETScLinearSolver::VectorCreate(PetscInt m)
 
 void PETScLinearSolver::MatrixCreate( PetscInt m, PetscInt n)
 {
+  // Number of nonzeros per row in DIAGONAL portion of 
+  // local submatrix (same value is used for all local rows) 
+  int d_nz; 
+  // Number of nonzeros per row in the OFF-DIAGONAL portion of 
+  // local submatrix (same value is used for all local rows). 
+  int o_nz; 	
+  // Number of nonzeros per row (same for all rows) 
+  int nz;
+
+  d_nz = 5; 
+  o_nz = 5; 
+  nz = 5;
 
   MatCreate(PETSC_COMM_WORLD, &A);
   MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n);
   MatSetFromOptions(A);
   MatSetType(A,MATMPIAIJ);
-  MatMPIAIJSetPreallocation(A,5,PETSC_NULL,5,PETSC_NULL);
-  MatSeqAIJSetPreallocation(A,5,PETSC_NULL);
+  MatMPIAIJSetPreallocation(A,d_nz,PETSC_NULL, o_nz,PETSC_NULL);
+  MatSeqAIJSetPreallocation(A, nz ,PETSC_NULL);
   MatGetOwnershipRange(A,&i_start,&i_end);
 
   //TEST
   // std::cout<<"sub_a  "<<i_start<<";   sub_d "<<i_end<<std::endl;
+
 }
 
 
