@@ -76,6 +76,10 @@ namespace _FDM
         int size_MPI;
         int rank_MPI;
         PETScLinearSolver *eqs;
+        int *idxn; // column index buffer for local assembly
+        PetscScalar *v_buff; // scalar number buffer for local assembly
+        std::vector <int> mat_idx_n; // for idxn
+        std::vector <double> mat_e;  // for v_buffer
 #else
         /// EQS
         SparseTable *sp; 
@@ -150,7 +154,7 @@ namespace _FDM
         bool CheckDirichletBC(Point *pnt);
         void CheckNuemannBC(Point *pnt);
         void CheckSourceSink(Point *pnt);
-		void setBC_at_PointOnLine(long i, Point *pnt, Geometry_Group::NeighborPoint_Type nbt);
+	void setBC_at_PointOnLine(long i, Point *pnt, Geometry_Group::NeighborPoint_Type nbt);
         void setBC_at_Point_atCCorner(long i, Point *pnt);
         
         void Output_Domain_VTK(std::ostream &os);

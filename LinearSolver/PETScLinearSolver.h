@@ -52,6 +52,8 @@ class PETScLinearSolver
     void add_xVectorEntry(const int i, const double value, InsertMode mode);
     void add_bVectorEntry(const int i, const double value, InsertMode mode);
     void addMatrixEntry(const int i, const int j, const double value);
+    void addMatrixEntries(const int m,const int idxm[], const int n, 
+             const int idxn[],const PetscScalar v[]);
  
     void Initialize();
 

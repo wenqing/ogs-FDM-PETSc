@@ -49,6 +49,8 @@ namespace _FDM
       delete num;
 #ifndef USE_PETSC
       delete sp;
+      delete [] idxn;
+      delete [] v_buff;
 #endif
       delete eqs;
       if(ic) delete ic;
@@ -252,7 +254,11 @@ namespace _FDM
       eqs->set_rank_size(rank_MPI, size_MPI);
       eqs->Config(num->getTolerance(), 
                   num->getSolverName(), num->getPreConditionerName());
-      
+
+      // In order to use  MatSetValues, we add one point related matrix entries to 
+      // the global one in one time to enhance the efficiency
+      idxn = new int[20];// Actuall 5 is enough for 5 point tencil. 
+      v_buff = new  PetscScalar[20];     
 #else
       sp = new SparseTable(this);
       eqs = new Linear_EQS(*sp, 1); 
@@ -1031,12 +1037,16 @@ namespace _FDM
 
 
 #ifdef USE_PETSC
+
       for(i=eqs->getStartRow(); i<eqs->getEndRow(); i++)
 #else 
       for(i=0; i<size; i++)
 #endif
       {
-
+#ifdef USE_PETSC
+         mat_idx_n.clear();
+         mat_e.clear();
+#endif
          pnt = grid_point_in_use[i];
 
          /// Source/sink
@@ -1056,7 +1066,10 @@ namespace _FDM
                   e_val = mat_l/h2;
 
 #ifdef USE_PETSC
-               eqs->addMatrixEntry(i, pnt->neighbor_points[k] ,e_val);
+	       //     eqs->addMatrixEntry(i, pnt->neighbor_points[k] ,e_val);
+               mat_idx_n.push_back(pnt->neighbor_points[k]);
+               mat_e.push_back(e_val);
+
 #else
                (*A)(i, pnt->neighbor_points[k]) = e_val;
 #endif
@@ -1103,6 +1116,19 @@ namespace _FDM
              }
 	   
          }
+
+#ifdef USE_PETSC
+         // Block assemble for PETSc matrix
+         int nc = (int)i;
+         int l_size = mat_idx_n.size();
+         for(k=0; k<l_size; k++)
+	 { 
+	   idxn[k] = mat_idx_n[k];
+           v_buff[k] = mat_e[k];
+ 	 }
+         eqs->addMatrixEntries(1, &nc, l_size, idxn, v_buff);
+#endif
+
           
       }
 
@@ -1227,7 +1253,9 @@ namespace _FDM
              else
                 e_val = mat_l/h2;
 #ifdef USE_PETSC
-             eqs->addMatrixEntry(i, pnt->neighbor_points[k], e_val);
+	     // eqs->addMatrixEntry(i, pnt->neighbor_points[k], e_val);
+             mat_idx_n.push_back(pnt->neighbor_points[k]);
+             mat_e.push_back(e_val);
 #else
              (*A)(i, pnt->neighbor_points[k]) = e_val;
 #endif
@@ -1252,7 +1280,12 @@ namespace _FDM
              else
                  e_val = mat_l/h2;
 #ifdef USE_PETSC
-             eqs->addMatrixEntry(i, pnt->neighbor_points[k], e_val);
+             //eqs->addMatrixEntry(i, pnt->neighbor_points[k], e_val);
+
+             mat_idx_n.push_back(pnt->neighbor_points[k]);
+             mat_e.push_back(e_val);
+
+
              eqs->add_bVectorEntry(i, -2.0*pnt->value/h2, ADD_VALUES);
 #else
              (*A)(i, pnt->neighbor_points[k]) = e_val;
@@ -1298,7 +1331,10 @@ namespace _FDM
              else
                 e_val = 2.0*mat_l/h2;
 #ifdef USE_PETSC
+	     //  mat_idx_n.push_back(pnt->neighbor_points[k]);
+             mat_e.push_back(e_val);
              eqs->addMatrixEntry(i, pnt->neighbor_points[k],  e_val);
+
 #else
              (*A)(i, pnt->neighbor_points[k]) = e_val;
 #endif
@@ -1324,7 +1360,10 @@ namespace _FDM
                  e_val = 0.;
 
 #ifdef USE_PETSC
-             eqs->addMatrixEntry(i,pnt->neighbor_points[k], e_val);
+             //eqs->addMatrixEntry(i,pnt->neighbor_points[k], e_val);
+             mat_idx_n.push_back(pnt->neighbor_points[k]);
+             mat_e.push_back(e_val);
+
              eqs->add_bVectorEntry(i, -4.0*pnt->value/h2, ADD_VALUES);
 #else
              (*A)(i, pnt->neighbor_points[k]) = e_val;

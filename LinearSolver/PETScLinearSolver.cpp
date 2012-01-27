@@ -334,6 +334,13 @@ void PETScLinearSolver::addMatrixEntry(const int i, const int j, const double va
   MatSetValue(A, i, j, value, ADD_VALUES);
 }
 
+void PETScLinearSolver::addMatrixEntries(const int m,const int idxm[], const int n, 
+             const int idxn[],const PetscScalar v[])
+{
+
+  MatSetValues(A, m, idxm, n, idxn, v, ADD_VALUES);
+}
+
 void PETScLinearSolver::zeroRows_in_Matrix(const int nrows, const  PetscInt *rows)
 {
   PetscScalar one = 1.0;
