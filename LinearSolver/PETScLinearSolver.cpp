@@ -148,7 +148,7 @@ void PETScLinearSolver::MatrixCreate( PetscInt m, PetscInt n)
   MatSetFromOptions(A);
   MatSetType(A,MATMPIAIJ);
   MatMPIAIJSetPreallocation(A,d_nz,PETSC_NULL, o_nz,PETSC_NULL);
-  MatSeqAIJSetPreallocation(A, nz ,PETSC_NULL);
+  //MatSeqAIJSetPreallocation(A, nz ,PETSC_NULL);
   MatGetOwnershipRange(A,&i_start,&i_end);
 
   //TEST
