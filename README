@@ -1,5 +1,5 @@
- s_FDM
  
+
  By Wenqing Wang
  03.2011
  
@@ -9,6 +9,7 @@
  Arbitrary boundary
  Sparse matrix storage
  Iterative solve
+ Parellel computing with PETSc
  Flexible boundary condition definition
  human readable input
  
