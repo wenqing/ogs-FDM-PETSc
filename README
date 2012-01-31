@@ -14,5 +14,6 @@
  human readable input
  
  Compilation:
- Use Cmake to generate a project or makefile by command
- cmake [path to source code]
+ Use Cmake to generate a project or makefile by command 
+ for sequential executable file: cmake [path to source folder] 
+ for parallel executable file: cmake [path to source folder] -DUSE_PETSC=ON
