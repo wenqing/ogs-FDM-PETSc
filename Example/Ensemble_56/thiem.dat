@@ -1,0 +1,87 @@
+# An example input of FDM code
+--- Material  
+     conductivity:  9.997790e-005 
+     storage:  0.
+    
+  
+--- Grid
+	ncols:        1000  
+	nrows:        1000  
+	xllcorner:    -25.6 
+	yllcorner:    -25.6
+	cellsize:    0.0512  
+
+     
+--- Time   # (day)
+     start_time:  0.
+     end_time:  1e3
+     step_size:   1000
+ 
+--- Initial condition
+     geometry: domain
+     value:  0.0
+      
+              
+#--- Neumann BC
+#     geometry: polyline ply_neumann
+#     value:  0.0
+
+--- Dirichlet  BC
+     geometry: polyline NE 
+     value:  0
+
+--- Dirichlet  BC
+     geometry: polyline E 
+     value:  0
+
+--- Dirichlet  BC
+     geometry: polyline SE 
+     value:  0
+
+--- Dirichlet  BC
+     geometry: polyline S 
+     value:  0
+     
+--- Dirichlet  BC
+     geometry: polyline SW 
+     value:  0
+     
+--- Dirichlet  BC
+     geometry: polyline W 
+     value:  0
+
+--- Dirichlet  BC
+     geometry: polyline NW 
+     value:  0
+
+--- Dirichlet  BC
+     geometry: polyline N 
+     value:  0
+     
+--- Source/sink
+     geometry: point 0
+     value:  -0.0001
+
+#--- Output
+#     geometry: domain
+#     steps: 2
+
+--- Output
+     geometry: domain
+     times: 
+     1000
+     2000
+     3000
+     ...
+
+#--- Source term raster     
+               
+--- Solver
+    linear: CG
+    preconditioner: sor
+    tolerance: 1.e-8
+    max_iteration: 1000
+                
+...              
+
+
