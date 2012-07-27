@@ -1159,10 +1159,10 @@ namespace _FDM
 #endif
 
 
-      PetscInt *rows_toberemoved;
+      //PetscInt *rows_toberemoved;
       int nrows =(int)BC_Dirichlet_points.size();   
 
-      rows_toberemoved = new PetscInt[nrows];
+      //rows_toberemoved = new PetscInt[nrows];
       
 //TEST  PetscErrorCode ierr;
 //      PetscPrintf(PETSC_COMM_WORLD,"Number of DBC %D\n",nrows);
@@ -1173,7 +1173,7 @@ namespace _FDM
       for(i=0; i<nrows; i++) 
       {
          l =  BC_Dirichlet_points[i];
-         rows_toberemoved[i] =  l;
+         //rows_toberemoved[i] =  l;
 
          if((l>=eqs->getStartRow())&&(l<eqs->getEndRow()))
          {
@@ -1183,7 +1183,8 @@ namespace _FDM
          }
      
       }
-      eqs->zeroRows_in_Matrix(nrows, rows_toberemoved);
+      //eqs->zeroRows_in_Matrix(nrows, rows_toberemoved);
+      eqs->zeroRows_in_Matrix(nrows, &BC_Dirichlet_points[0]);
      
                
       eqs->AssembleRHS_PETSc();
@@ -1192,8 +1193,8 @@ namespace _FDM
 
 
 
-      delete [] rows_toberemoved;
-      rows_toberemoved = NULL;
+      //delete [] rows_toberemoved;
+      //rows_toberemoved = NULL;
 
 #else
 

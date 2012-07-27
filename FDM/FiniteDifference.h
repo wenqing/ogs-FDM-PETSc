@@ -118,7 +118,7 @@ namespace _FDM
         std::vector<ConditionDataBC*> BC_Neumann; 
         std::vector<ConditionDataBC*> BC_Dirichlet; 
         std::vector<ConditionDataBC*> Source_Sink; 
-        std::vector<long> BC_Dirichlet_points; 
+        std::vector<int> BC_Dirichlet_points; 
         ConditionDataBC *ic;
          
         /// Source term
