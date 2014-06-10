@@ -12,7 +12,6 @@
 #include "petscksp.h"
 #endif
 
-
 #include "MatProperty.h"
 #include "Polyline.h"
 #include "FiniteDifference.h"
@@ -30,9 +29,24 @@ int main ( int argc, char *argv[] )
   char str1[max_size];
   string file_name;
   string file_path;
+
+#ifdef USE_PETSC
+  int rank, r_size;
+  char help[] = "FDM with PETSc \n";
+  //PetscInitialize(argc, argv, help);
+  PetscInitialize(&argc,&argv,(char *)0,help);
+
+  MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
+  MPI_Comm_size(PETSC_COMM_WORLD, &r_size);
+  if(rank ==0)
+  {
+#endif
   
   cout<<"\tA 2-D FDM groundwater flow simulator (by WW@UFZ) "<<endl;
   cout<<"\tV3.0 (with PETSc). 11.2011 "<<endl;
+#ifdef USE_PETSC
+  }
+#endif
 
   if(argc>1) 
      strcpy(str1,argv[1]);
@@ -44,25 +58,14 @@ int main ( int argc, char *argv[] )
 
 
 #ifdef USE_PETSC
-  int rank, r_size;
   PetscLogDouble v1,v2;
-  char help[] = "FDM with PETSc \n";
-  //PetscInitialize(argc, argv, help);
-  PetscInitialize(&argc,&argv,(char *)0,help);
   PetscGetTime(&v1);
-
-  MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
-  MPI_Comm_size(PETSC_COMM_WORLD, &r_size);
   PetscSynchronizedPrintf(PETSC_COMM_WORLD, "Number of CPUs: %d, rank: %d\n", r_size, rank);
   PetscSynchronizedFlush(PETSC_COMM_WORLD);
-
 #else
   clock_t time_cpu;
   time_cpu = -clock();
 #endif
-
-
-
 
   // Name and path of the input data file
   file_name = str1;

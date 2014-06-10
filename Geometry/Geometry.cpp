@@ -14,6 +14,10 @@
 #include <cfloat>
 #include <cstdlib>
 
+#ifdef USE_PETSC
+#include "petscksp.h"
+#endif
+
 #include "Numerics.h"
 #include "misc.h"
 
@@ -49,6 +53,11 @@ void Geometry::GeoRead(string file_name)
       exit(1);
    } 
 
+#ifdef USE_PETSC
+   int rank;
+   MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
+   if(rank ==0)
+#endif
    cout<<">> Read geometry data."<<endl;
    while(!ins.eof())
    {

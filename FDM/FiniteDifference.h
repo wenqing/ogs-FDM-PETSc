@@ -80,6 +80,9 @@ namespace _FDM
         PetscScalar *v_buff; // scalar number buffer for local assembly
         std::vector <int> mat_idx_n; // for idxn
         std::vector <double> mat_e;  // for v_buffer
+
+        std::vector<int> bc_ids; ///< entry IDs for Dirichlet BC
+		std::vector<double> bc_vals; ///< entry values for Dirichlet BC       
 #else
         /// EQS
         SparseTable *sp; 

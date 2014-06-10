@@ -115,6 +115,9 @@ namespace _FDM
       string aline;
       mat = NULL;
       
+#ifdef USE_PETSC      
+      if(rank_MPI == 0)
+#endif
       cout<<">> Read FDM data."<<endl;
       while(!ins.eof())
       {
@@ -240,8 +243,10 @@ namespace _FDM
             outp.push_back(new Output(file_path, file_name, ins, geo_grid));
 
       }
-  
-     
+       
+#ifdef USE_PETSC      
+      if(rank_MPI == 0)
+#endif
       cout<<">> Build grid data."<<endl;
       CaterogorizeGridPoint();
       /// Initialize solution arrays;
@@ -260,6 +265,17 @@ namespace _FDM
       // the global one in one time to enhance the efficiency
       idxn = new int[20];// Actuall 5 is enough for 5 point tencil. 
       v_buff = new  PetscScalar[20];     
+      
+      // Partition BC_Dirichlet      
+      for(size_t i=0; i<BC_Dirichlet_points.size(); i++) 
+      {
+         const int l =  BC_Dirichlet_points[i];
+         if((l>=eqs->getStartRow())&&(l<eqs->getEndRow()))
+         {
+            bc_ids.push_back(l);
+            bc_vals.push_back(grid_point_in_use[l]->value);
+         }     
+      }           
 #else
       sp = new SparseTable(this);
       eqs = new Linear_EQS(*sp, 1); 
@@ -276,10 +292,8 @@ namespace _FDM
          u0[i] = u1[i] = ic->value;
       }
 
-#ifdef USE_PETSC
-          int rank;
-          MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-          if(rank == 0) 
+#ifdef USE_PETSC      
+      if(rank_MPI == 0)
 #endif
       if(outp.size()>0)
       {
@@ -991,7 +1005,7 @@ namespace _FDM
    void FiniteDifference::AssembleEQS()
    {
       int k;
-      long i, l;
+      long i;
       Point *pnt; 
       real e_val, h2; 
       real mat_m;
@@ -1158,45 +1172,18 @@ namespace _FDM
        PetscViewerCreate(PETSC_COMM_WORLD, &viewer);
        eqs->EQSV_Viewer(file_name, viewer);
 #endif
-
-
-      //PetscInt *rows_toberemoved;
-      int nrows =(int)BC_Dirichlet_points.size();   
-
-      //rows_toberemoved = new PetscInt[nrows];
-      
-//TEST  PetscErrorCode ierr;
-//      PetscPrintf(PETSC_COMM_WORLD,"Number of DBC %D\n",nrows);
- ////
-
-      
-
-      for(i=0; i<nrows; i++) 
+      //
+      const int nbc = static_cast<int>(bc_ids.size());
+      for(int i=0; i<nbc; i++) 
       {
-         l =  BC_Dirichlet_points[i];
-         //rows_toberemoved[i] =  l;
-
-         if((l>=eqs->getStartRow())&&(l<eqs->getEndRow()))
-         {
-            eqs->set_bVectorEntry(l,grid_point_in_use[l]->value);         
-            eqs->set_xVectorEntry(l,grid_point_in_use[l]->value);   
-
-         }
-     
+           eqs->set_bVectorEntry(bc_ids[i], bc_vals[i]);         
+           eqs->set_xVectorEntry(bc_ids[i], bc_vals[i]);        
       }
-      //eqs->zeroRows_in_Matrix(nrows, rows_toberemoved);
-      eqs->zeroRows_in_Matrix(nrows, &BC_Dirichlet_points[0]);
-     
-               
+      eqs->zeroRows_in_Matrix(nbc, &bc_ids[0]);
+                   
       eqs->AssembleRHS_PETSc();
       eqs->AssembleUnkowns_PETSc();
-      eqs->AssembleMatrixPETSc();
-
-
-
-      //delete [] rows_toberemoved;
-      //rows_toberemoved = NULL;
-
+      eqs->AssembleMatrixPETSc();     
 #else
 
       for(i=0; i<(long)BC_Dirichlet_points.size(); i++) 
