@@ -1,7 +1,7 @@
 /*========================================================================
- GeoSys - class Matrix, Sparse matrix (Declaration)   
+ GeoSys - class Matrix, Sparse matrix (Declaration)
  Task:       Matrix object for full matrices.  If the size of matrix is
-             small, this class can do efficient matrix operation. 
+             small, this class can do efficient matrix operation.
  Function:   See the declaration below
  Design and programm WW
 ==========================================================================*/
@@ -12,36 +12,40 @@
 #include<iostream>
 #include<fstream>
 
-namespace _FDM {class FiniteDifference;} 
+namespace _FDM
+{
+class FiniteDifference;
+}
 
-namespace Math_Group{
+namespace Math_Group
+{
 
-  using _FDM::FiniteDifference;
+using _FDM::FiniteDifference;
 //
-  class SparseMatrix;
+class SparseMatrix;
 
 /// Sparse matrix storage type
 enum StorageType { CRS, JDS};
 class SparseTable
 {
-    public:
+   public:
       SparseTable(FiniteDifference *fdm);
-      ~SparseTable();   
-	  void Write(std::ostream &os=std::cout);    
-    private:
+      ~SparseTable();
+      void Write(std::ostream &os=std::cout);
+   private:
       bool symmetry;
       // Topology mapping from data array to matrix
       long *entry_column;
       long *num_column_entries;     // number of entries of each columns in sparse table
-      long *row_index_mapping_n2o;  // Row index of sparse table to row index of matrix 
-      long *row_index_mapping_o2n;  // Inverse of last 
+      long *row_index_mapping_n2o;  // Row index of sparse table to row index of matrix
+      long *row_index_mapping_o2n;  // Inverse of last
       long *diag_entry;             // Global index to the index of  entry_column
       long size_entry_column;
-      long max_columns;  
+      long max_columns;
       long rows;
 
-      StorageType storage_type;  
-      // 
+      StorageType storage_type;
+      //
       friend class SparseMatrix;
 };
 

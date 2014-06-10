@@ -1,10 +1,10 @@
 /*!
   \file Polyline.cpp
 
-   Definition of member fucntions of class Polyline, and the function 
+   Definition of member fucntions of class Polyline, and the function
    used to read geometrical data
 
-   14.04.2011. WW   
+   14.04.2011. WW
 */
 
 #include "Geometry.h"
@@ -38,109 +38,109 @@ using namespace AuxFunctions;
   14.04.2011. WW
 */
 void Geometry::GeoRead(string file_name)
-{   
-   long id; 
+{
+   long id;
    float xy[2];
    string aline;
    std::stringstream ss;
 
-   string geo_fname = file_name+".geo"; 
+   string geo_fname = file_name+".geo";
    ifstream ins(geo_fname.c_str());
 
-   if(!ins.good()) 
+   if(!ins.good())
    {
       cout<<"Could not find file "<<geo_fname<<". Stop now!"<<endl;
       exit(1);
-   } 
+   }
 
 #ifdef USE_PETSC
    int rank;
    MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
    if(rank ==0)
 #endif
-   cout<<">> Read geometry data."<<endl;
+      cout<<">> Read geometry data."<<endl;
    while(!ins.eof())
    {
-      getline(ins, aline); 
+      getline(ins, aline);
       if(CheckComment(aline))
-          continue;
-	  aline = AuxFunctions::string_To_lower(aline);
-      if(aline.find("point")!=string::npos)  
-      {   
+         continue;
+      aline = AuxFunctions::string_To_lower(aline);
+      if(aline.find("point")!=string::npos)
+      {
          for(;;)
          {
-            getline(ins, aline); 
+            getline(ins, aline);
             if(aline.find("...")!=string::npos)
-              break; 
-         
+               break;
+
             ss.str(aline);
             ss>> id >> xy[0] >> xy[1];
             ss.clear();
 
-            points.push_back(new Geometry_Group::Point(id, xy[0], xy[1])); 
+            points.push_back(new Geometry_Group::Point(id, xy[0], xy[1]));
          }
       }
 
-      if(aline.find("polyline")!=string::npos) 
+      if(aline.find("polyline")!=string::npos)
       {
          ss.str(aline);
          // Skip "---" and "polyline"
          ss>>aline>>aline>>aline;
          ss.clear();
-         polylines.push_back(new Geometry_Group::Polyline(ins, aline, this)); 
+         polylines.push_back(new Geometry_Group::Polyline(ins, aline, this));
 
       }
-       
+
 
    }
 
-} 
+}
 
 /*!
-    \fn Polyline *getPolylineByName(string name); 
-   
-     Find a polyline by name 
-      
-     04.2011. WW 
+    \fn Polyline *getPolylineByName(string name);
+
+     Find a polyline by name
+
+     04.2011. WW
 */
 Polyline *Geometry::getPolylineByName(string name)
 {
    int i;
-  
+
    for(i=0; i<(int)polylines.size(); i++)
    {
       if(polylines[i]->Name().find(name)!=string::npos)
       {
-         return polylines[i]; 
+         return polylines[i];
       }
-   }          
+   }
    return NULL;
 }
 /*!
-    \fn FDM::Point *getPointByID(long ID); 
-   
-     Find a polyline by name 
-      
-     04.2011. WW 
+    \fn FDM::Point *getPointByID(long ID);
+
+     Find a polyline by name
+
+     04.2011. WW
 */
 
 Point *Geometry::getPointByID(long ID)
 {
    int i;
-  
+
    for(i=0; i<(int)points.size(); i++)
    {
       if(points[i]->Index() == ID)
       {
-         return points[i]; 
+         return points[i];
       }
-   }          
+   }
    return NULL;
 }
 //-------------------------------------------
 /*!
    \fn  WriteGeoData(ostream &os = cout);
-   
+
     Output Geometrical Data
 */
 void Geometry::WriteGeoData(ostream &os)
@@ -149,10 +149,10 @@ void Geometry::WriteGeoData(ostream &os)
 
    os<<"--- point"<<endl;
    for(i=0; i<points.size(); i++)
-     points[i]->Write(os);
+      points[i]->Write(os);
    os<<"...\n"<<endl;
 
-  
+
    for(i=0; i<polylines.size(); i++)
       polylines[i]->Write(os);
 

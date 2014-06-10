@@ -1,8 +1,8 @@
 /*!
   \file Polyline.h
-   
+
    Declaration of fundtions, which are used to handel the geometrical data
-   
+
    05.09.2011. WW
 */
 #ifndef Geometry_INC
@@ -21,15 +21,18 @@ class Geometry
 {
    public:
       Geometry() {}
-	  ~Geometry() {GeoReleaseMemory(); }
+      ~Geometry()
+      {
+         GeoReleaseMemory();
+      }
 
 
-      void GeoRead(std::string file_name); 
-      void GeoReleaseMemory(); 
-      Polyline *getPolylineByName(std::string name); 
-      Point *getPointByID(long ID); 
-      void WriteGeoData(std::ostream &os = std::cout);  
-  
+      void GeoRead(std::string file_name);
+      void GeoReleaseMemory();
+      Polyline *getPolylineByName(std::string name);
+      Point *getPointByID(long ID);
+      void WriteGeoData(std::ostream &os = std::cout);
+
    private:
 
       /// Contains all points of the domain
