@@ -47,10 +47,11 @@ namespace _FDM
    {
       delete mat;
       delete num;
-#ifndef USE_PETSC
-      delete sp;
+#ifdef USE_PETSC
       delete [] idxn;
       delete [] v_buff;
+#else
+      delete sp;
 #endif
       delete eqs;
       if(ic) delete ic;
