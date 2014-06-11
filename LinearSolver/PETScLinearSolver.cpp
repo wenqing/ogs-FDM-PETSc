@@ -345,11 +345,11 @@ void PETScLinearSolver::zeroRows_in_Matrix(const int nrows, const  PetscInt *row
    // Each process indicates only rows it owns that are to be zeroed
    // MatSetOption(A, MAT_NO_OFF_PROC_ZERO_ROWS,PETSC_TRUE);
    if(nrows>0)
-      //MatZeroRows (A, nrows, rows, one, PETSC_NULL, PETSC_NULL);
-      MatZeroRowsColumns(A, nrows, rows, one, PETSC_NULL, PETSC_NULL);
+      MatZeroRows (A, nrows, rows, one, PETSC_NULL, PETSC_NULL);
+   //   MatZeroRowsColumns(A, nrows, rows, one, PETSC_NULL, PETSC_NULL);
    else
-      //MatZeroRows(A, 0, PETSC_NULL, one, PETSC_NULL, PETSC_NULL);
-      MatZeroRowsColumns(A, nrows, rows, one, PETSC_NULL, PETSC_NULL);
+     MatZeroRows(A, 0, PETSC_NULL, one, PETSC_NULL, PETSC_NULL);
+   //   MatZeroRowsColumns(A, 0, PETSC_NULL, one, PETSC_NULL, PETSC_NULL);
 }
 
 void PETScLinearSolver::EQSV_Viewer(std::string file_name, PetscViewer viewer)

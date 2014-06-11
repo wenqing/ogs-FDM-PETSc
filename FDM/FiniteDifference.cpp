@@ -917,7 +917,7 @@ void FiniteDifference::TimeSteping()
    current_time = T0;
 
    istep = 0;
-   while(current_time < T1)
+   while(current_time <= T1)
    {
 
 #ifdef USE_PETSC
