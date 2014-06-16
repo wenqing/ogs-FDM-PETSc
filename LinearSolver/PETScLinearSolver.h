@@ -23,6 +23,7 @@ class PETScLinearSolver
       {
          ltolerance = 1.e-10;
          m_size = size;
+         m_size_loc = PETSC_DECIDE;
          time_elapsed = 0.0;
       }
       ~PETScLinearSolver();
@@ -41,7 +42,7 @@ class PETScLinearSolver
       void AssembleUnkowns_PETSc( );
       void AssembleMatrixPETSc();
 
-      void UpdateSolutions(PetscScalar *u0, PetscScalar *u1);
+      void UpdateSolutions(PetscScalar *u);
 
 
       int Size() const
@@ -94,13 +95,11 @@ class PETScLinearSolver
       PetscInt i_start;
       PetscInt i_end;
 
-      // Slover and preconditioner names, only for log
-      std::string sol_type;
-      std::string pc_type;
-
       PetscLogDouble time_elapsed;
 
-      long m_size;
+      PetscInt m_size;
+      PetscInt m_size_loc;
+
       float ltolerance;
 
       int mpi_size;
@@ -108,6 +107,15 @@ class PETScLinearSolver
 
       void VectorCreate(PetscInt m);
       void MatrixCreate(PetscInt m, PetscInt n);
+
+      /*!
+         \brief  collect local vectors
+         \param  local_array  local array
+         \param  global_array global array
+      */
+      void gatherLocalVectors(PetscScalar local_array[],
+                              PetscScalar global_array[]);
+
 
 };
 

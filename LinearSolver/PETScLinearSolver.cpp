@@ -9,6 +9,8 @@
 
 #include "PETScLinearSolver.h"
 
+#include <vector>
+
 PETScLinearSolver:: ~PETScLinearSolver()
 {
    VecDestroy(&b);
@@ -104,8 +106,6 @@ PETScLinearSolver:: ~PETScLinearSolver()
 void PETScLinearSolver::Config(const float tol, const KSPType lsol, const PCType prec_type)
 {
    ltolerance = tol;
-   sol_type = lsol;
-   pc_type = prec_type;
 
    KSPCreate(PETSC_COMM_WORLD,&lsolver);
    KSPSetOperators(lsolver, A, A,DIFFERENT_NONZERO_PATTERN);
@@ -125,6 +125,8 @@ void PETScLinearSolver::VectorCreate(PetscInt m)
    VecSetSizes(b, PETSC_DECIDE, m);
    VecSetFromOptions(b);
    VecDuplicate(b, &x);
+
+   VecGetLocalSize(x, &m_size_loc);
 }
 
 
@@ -148,7 +150,7 @@ void PETScLinearSolver::MatrixCreate( PetscInt m, PetscInt n)
    MatSetFromOptions(A);
    MatSetType(A,MATMPIAIJ);
    MatMPIAIJSetPreallocation(A,d_nz,PETSC_NULL, o_nz,PETSC_NULL);
-   //MatSeqAIJSetPreallocation(A, nz ,PETSC_NULL);
+   MatSeqAIJSetPreallocation(A, nz ,PETSC_NULL);
    MatGetOwnershipRange(A,&i_start,&i_end);
 
    //TEST
@@ -156,10 +158,8 @@ void PETScLinearSolver::MatrixCreate( PetscInt m, PetscInt n)
 
 }
 
-
 void PETScLinearSolver::Solver()
 {
-
 
    //TEST
    //PetscViewer viewer;
@@ -176,6 +176,8 @@ void PETScLinearSolver::Solver()
 
    PetscGetTime(&v1);
 
+   KSPSetOperators(lsolver, A, A,DIFFERENT_NONZERO_PATTERN);
+
    KSPSolve(lsolver, b, x);
 
 
@@ -191,10 +193,14 @@ void PETScLinearSolver::Solver()
    }
    else
    {
+      const char *slv_type;
+      const char *prc_type;
+      KSPGetType(lsolver, &slv_type);
+      PCGetType(prec, &prc_type);
 
       PetscPrintf(PETSC_COMM_WORLD,"\n================================================");
       PetscPrintf(PETSC_COMM_WORLD, "\nLinear solver %s with %s preconditioner",
-                  sol_type.c_str(), pc_type.c_str() );
+                  slv_type, prc_type);
       KSPGetIterationNumber(lsolver,&its); //CHKERRQ(ierr);
       PetscPrintf(PETSC_COMM_WORLD,"\nConvergence in %d iterations.\n",(int)its);
       PetscPrintf(PETSC_COMM_WORLD,"\n================================================");
@@ -207,16 +213,14 @@ void PETScLinearSolver::Solver()
    PetscGetTime(&v2);
    time_elapsed += v2-v1;
 
-   /*
+//#define  EXIT_TEST
+#ifdef EXIT_TEST
    //TEST
-    PetscViewer viewer;
-    PetscViewerASCIIOpen(PETSC_COMM_WORLD, "x2.txt", &viewer);
-    PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
-    PetscObjectSetName((PetscObject)x,"Solution");
-    VecView(x, viewer);
-   */
-
-
+   PetscViewer viewer;
+   EQSV_Viewer("petsc", viewer);
+//    PetscFinalize();
+//    exit(0);
+#endif
 }
 
 void PETScLinearSolver::AssembleRHS_PETSc()
@@ -235,65 +239,58 @@ void PETScLinearSolver::AssembleMatrixPETSc()
    MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
 }
 
-
-void PETScLinearSolver::UpdateSolutions(PetscScalar *u0, PetscScalar *u1)
+void PETScLinearSolver::UpdateSolutions(PetscScalar *u)
 {
-   int i, j;
-   PetscScalar *xp;
 
-   int receivecount;
-   PetscInt low,high,otherlow;
-   MPI_Status status;
-   PetscInt count;
-   int tag = 9999;
-   VecGetOwnershipRange(x, &low, &high);
-   VecGetLocalSize(x, &count);
+#ifdef TEST_MEM_PETSC
+   //TEST
+   PetscLogDouble mem1, mem2;
+   PetscMemoryGetCurrentUsage(&mem1);
+#endif
 
-
+   PetscScalar *xp = NULL; //nullptr;
    VecGetArray(x, &xp);
-   for(i=0; i<count; i++)
-      u1[i] = xp[i];
 
-
-   double *u_temp = new double[m_size];
-
-
-   // Collect solution from processes.
-   for(j=0; j<count; j++)
-      u_temp[low+j] = u1[j];
-   for(i=0; i<mpi_size; i++)
-   {
-      if(i != rank)
-      {
-
-         MPI_Sendrecv( &count, 1, MPI_INT, i,tag,
-                       &receivecount,1,MPI_INT,i,tag, PETSC_COMM_WORLD ,&status);
-         MPI_Sendrecv( &low, 1, MPI_INT, i,tag,
-                       &otherlow,1,MPI_INT,i,tag,PETSC_COMM_WORLD,&status );
-         MPI_Sendrecv( u1, count, MPI_DOUBLE, i,tag,
-                       u0,receivecount,MPI_DOUBLE,i,tag, PETSC_COMM_WORLD,&status  );
-         for(j=0; j<receivecount; j++)
-            u_temp[otherlow+j] = u0[j];
-      }
-   }
-
+   gatherLocalVectors(xp, u);
 
    //MPI_Barrier(PETSC_COMM_WORLD);
-   // Copy the collected solution to the array for the previous solution
-   for(i=0; i<m_size; i++)
-   {
-      u1[i] = u_temp[i];
-      u0[i] = u_temp[i];
-   }
-
-
-   delete [] u_temp;
 
    VecRestoreArray(x, &xp);
 
+   //TEST
+#ifdef TEST_MEM_PETSC
+   PetscMemoryGetCurrentUsage(&mem2);
+   PetscPrintf(PETSC_COMM_WORLD, "### Memory usage by Updating. Before :%f After:%f Increase:%d\n", mem1, mem2, (int)(mem2 - mem1));
+#endif
+
 }
 
+void PETScLinearSolver::gatherLocalVectors( PetscScalar local_array[],
+      PetscScalar global_array[])
+{
+   // Collect vectors from processors.
+   int size_rank;
+   MPI_Comm_size(PETSC_COMM_WORLD, &size_rank);
 
+   // number of elements to be sent for each rank
+   std::vector<PetscInt>  i_cnt(size_rank);
+   // offset in the receive vector of the data from each rank
+   std::vector<PetscInt>  i_disp(size_rank);
+
+   MPI_Allgather(&m_size_loc, 1, MPI_INT, &i_cnt[0], 1, MPI_INT, PETSC_COMM_WORLD);
+
+   // colloect local array
+   PetscInt offset = 0;
+   for(PetscInt i=0; i<size_rank; i++)
+   {
+      i_disp[i] = offset;
+      offset += i_cnt[i];
+   }
+
+   MPI_Allgatherv(local_array, m_size_loc, MPI_DOUBLE,
+                  global_array, &i_cnt[0], &i_disp[0], MPI_DOUBLE, PETSC_COMM_WORLD);
+
+}
 
 void PETScLinearSolver::set_bVectorEntry(const int i, const double value )
 {
@@ -344,12 +341,19 @@ void PETScLinearSolver::zeroRows_in_Matrix(const int nrows, const  PetscInt *row
    PetscScalar one = 1.0;
    // Each process indicates only rows it owns that are to be zeroed
    // MatSetOption(A, MAT_NO_OFF_PROC_ZERO_ROWS,PETSC_TRUE);
+
+//#define TEST_SYM_MAT
+#ifdef TEST_SYM_MAT
+   if(nrows>0)
+      MatZeroRowsColumns(A, nrows, rows, one, PETSC_NULL, PETSC_NULL);
+   else
+      MatZeroRowsColumns(A, 0, PETSC_NULL, one, PETSC_NULL, PETSC_NULL);
+#else
    if(nrows>0)
       MatZeroRows (A, nrows, rows, one, PETSC_NULL, PETSC_NULL);
-   //   MatZeroRowsColumns(A, nrows, rows, one, PETSC_NULL, PETSC_NULL);
    else
-     MatZeroRows(A, 0, PETSC_NULL, one, PETSC_NULL, PETSC_NULL);
-   //   MatZeroRowsColumns(A, 0, PETSC_NULL, one, PETSC_NULL, PETSC_NULL);
+      MatZeroRows(A, 0, PETSC_NULL, one, PETSC_NULL, PETSC_NULL);
+#endif
 }
 
 void PETScLinearSolver::EQSV_Viewer(std::string file_name, PetscViewer viewer)

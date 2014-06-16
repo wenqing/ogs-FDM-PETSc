@@ -965,7 +965,12 @@ void FiniteDifference::TimeSteping()
       eqs->EQSV_Viewer(file_name, viewer);
 
 #endif
-      eqs->UpdateSolutions(u0, u1);
+      eqs->UpdateSolutions(u0);
+      for(i=0; i<eqs->Size(); i++)
+      {
+         u1[i] = u0[i];
+
+      }
 #else
       for(i=0; i<eqs->Size(); i++)
       {
@@ -1166,7 +1171,7 @@ void FiniteDifference::AssembleEQS()
    eqs->AssembleUnkowns_PETSc();
 
    //TEST
-#define aTEST_PETSC_OUT
+//#define TEST_PETSC_OUT
 #ifdef TEST_PETSC_OUT
    PetscViewer viewer;
    PetscViewerCreate(PETSC_COMM_WORLD, &viewer);
