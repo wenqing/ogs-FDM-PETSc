@@ -917,7 +917,7 @@ void FiniteDifference::TimeSteping()
    current_time = T0;
 
    istep = 0;
-   while(current_time <= T1)
+   while(current_time < T1)
    {
 
 #ifdef USE_PETSC
@@ -979,7 +979,6 @@ void FiniteDifference::TimeSteping()
 
       }
 #endif
-      istep++;
 
 #ifdef USE_PETSC
       int rank;
@@ -993,7 +992,7 @@ void FiniteDifference::TimeSteping()
       MPI_Barrier(PETSC_COMM_WORLD);
 #endif
 
-
+      istep++;
       current_time += dt;
    }
 

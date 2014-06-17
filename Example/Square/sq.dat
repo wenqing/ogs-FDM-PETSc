@@ -25,9 +25,9 @@
      geometry: polyline left
      value:  0.0
 
---- Neumann BC
+--- Dirichlet  BC
      geometry: polyline top
-     value:  0.0
+     value:  -1.0
 
 --- Neumann BC
      geometry: polyline right
@@ -41,15 +41,16 @@
 #     geometry: point 0
 #     value:  -0.0001
 
-#--- Output
-#     geometry: domain
-#     steps: 2
-
 --- Output
      geometry: domain
-     times: 
-     1000
+     steps: 1
      ...
+
+#--- Output
+#     geometry: domain
+#     times: 
+#     1000
+#     ...
 
 #--- Source term raster     
                
